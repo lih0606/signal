@@ -79,10 +79,18 @@
                     <!-- 카테고리 버튼들은 JS로 자동 생성됨 -->
                 </div>
 
-                <div class="mt-3 flex justify-between text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div>여유 (5명 이상)</span>
-                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-yellow-400"></div>보통 (1~4명)</span>
-                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div>대기</span>
+                <div class="mt-3 flex justify-between gap-1 text-[11px] sm:text-xs text-gray-600 bg-gray-50 p-1 rounded border">
+                    <button class="status-filter-btn flex-1 flex flex-col xl:flex-row items-center justify-center gap-1 py-1.5 rounded hover:bg-gray-200 transition-colors focus:outline-none" data-status="green">
+                        <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div><span class="font-bold">여유</span></div>
+                        <span class="text-[10px] text-gray-400 hidden xl:inline">(5명+)</span>
+                    </button>
+                    <button class="status-filter-btn flex-1 flex flex-col xl:flex-row items-center justify-center gap-1 py-1.5 rounded hover:bg-gray-200 transition-colors focus:outline-none border-l border-r border-gray-200" data-status="yellow">
+                        <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-yellow-400"></div><span class="font-bold">보통</span></div>
+                        <span class="text-[10px] text-gray-400 hidden xl:inline">(1~4명)</span>
+                    </button>
+                    <button class="status-filter-btn flex-1 flex flex-col xl:flex-row items-center justify-center gap-1 py-1.5 rounded hover:bg-gray-200 transition-colors focus:outline-none" data-status="red">
+                        <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div><span class="font-bold">대기</span></div>
+                    </button>
                 </div>
             </div>
 
@@ -147,6 +155,7 @@
         let allFacilities = [];
         let markers = [];
         let activeOverlay = null;
+        let activeStatusFilter = 'all'; // 상태 필터용 변수 추가
 
         // 공지사항 모달 제어 함수
         function checkNotice() {
@@ -454,7 +463,10 @@
                                     item['주소'].toLowerCase().includes(searchTerm);
                 const matchCategory = category === 'all' || item['구분'] === category;
                 
-                const isMatch = matchSearch && matchCategory;
+                const light = getTrafficLight(item['정원'], item['현원']);
+                const matchStatus = activeStatusFilter === 'all' || light.color === activeStatusFilter;
+                
+                const isMatch = matchSearch && matchCategory && matchStatus;
 
                 // 지도 마커 보이기/숨기기
                 if (item.marker) {
@@ -473,6 +485,29 @@
 
         // 검색창 이벤트
         document.getElementById('searchInput').addEventListener('input', filterAndRender);
+
+        document.querySelectorAll('.status-filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetBtn = e.currentTarget;
+                const status = targetBtn.dataset.status;
+
+                // 이미 선택된 상태 버튼을 다시 누르면 선택 해제 (전체 보기)
+                if (activeStatusFilter === status) {
+                    activeStatusFilter = 'all';
+                    targetBtn.classList.remove('bg-gray-200', 'font-bold', 'shadow-inner');
+                } else {
+                    // 기존 선택된 버튼들의 스타일 초기화
+                    document.querySelectorAll('.status-filter-btn').forEach(b => {
+                        b.classList.remove('bg-gray-200', 'font-bold', 'shadow-inner');
+                    });
+                    // 새로운 상태 적용 및 클릭한 버튼 스타일 강조
+                    activeStatusFilter = status;
+                    targetBtn.classList.add('bg-gray-200', 'font-bold', 'shadow-inner');
+                }
+
+                filterAndRender(); // 필터 즉시 적용
+            });
+        });
 
         // 페이지 로드 완료 시 맵 초기화 및 공지사항 확인
         window.onload = function() {
