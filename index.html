@@ -1,15 +1,37 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서부돌봄신호등</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Kakao Map API -->
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=64100a23b3cbace78036575e32cfec9a&libraries=services"></script>
+    <!-- Leaflet Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
-<!-- ... existing code ... -->
+        }
+        /* 지도 영역이 남은 공간을 모두 차지하도록 설정 */
+        #map { 
+            flex: 1; 
+            z-index: 0;
+            min-height: 400px;
+        }
+        .leaflet-popup-content-wrapper { 
+            border-radius: 12px; 
+            padding: 4px;
+        }
+        .leaflet-popup-content { 
+            margin: 12px; 
+            font-family: 'Noto Sans KR', sans-serif; 
+        }
+        
+        /* 마우스를 올렸을 때 보이는 툴팁 디자인 추가 */
         .custom-tooltip {
             font-family: 'Noto Sans KR', sans-serif;
             padding: 8px 12px;
@@ -20,13 +42,35 @@
             color: #334155;
             font-size: 0.875rem;
             line-height: 1.5;
-            white-space: nowrap; /* 툴팁 줄바꿈 방지 */
         }
         .custom-tooltip b { color: #0f172a; font-size: 1rem; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen bg-slate-50">
-<!-- ... existing code ... -->
+
+    <!-- 상단 헤더 및 범례 -->
+    <header class="bg-white text-slate-800 h-16 flex items-center px-4 md:px-6 shadow-md z-10 relative border-b border-slate-200">
+        <h1 class="text-lg md:text-xl font-bold flex items-center gap-2">
+            <i class="fa-solid fa-map-location-dot text-blue-600"></i> 인천서부돌봄신호등(돌봄 기관 이용 현황)
+        </h1>
+        
+        <div class="ml-auto hidden md:flex items-center gap-4 text-sm font-medium bg-slate-100 px-4 py-2 rounded-lg">
+            <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-full bg-green-500 shadow-sm"></div> 여유 (80% 미만)</span>
+            <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-full bg-yellow-400 shadow-sm"></div> 가능 (80%~99%)</span>
+            <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-full bg-red-500 shadow-sm"></div> 마감 (100% 이상)</span>
+            <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-full bg-slate-400 shadow-sm"></div> 정보없음</span>
+        </div>
+    </header>
+
+    <!-- 기관 구분 범례 및 필터 -->
+    <div class="bg-white px-4 py-3 border-b border-slate-200 flex flex-wrap gap-2 z-10 relative shadow-sm">
+        <button onclick="setFilter('전체')" id="filter-전체" class="filter-btn px-3 py-1.5 rounded-full text-sm font-medium border border-blue-500 bg-blue-50 text-blue-700 transition-colors">전체</button>
+        <button onclick="setFilter('초등돌봄교실')" id="filter-초등돌봄교실" class="filter-btn px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors">초등돌봄교실</button>
+        <button onclick="setFilter('지역아동센터')" id="filter-지역아동센터" class="filter-btn px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors">지역아동센터</button>
+        <button onclick="setFilter('다함께돌봄센터')" id="filter-다함께돌봄센터" class="filter-btn px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors">다함께돌봄센터</button>
+        <button onclick="setFilter('청소년방과후아카데미')" id="filter-청소년방과후아카데미" class="filter-btn px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors">청소년방과후아카데미</button>
+    </div>
+
     <!-- 모바일용 범례 (작은 화면에서만 보임) -->
     <div class="md:hidden flex justify-around text-xs bg-slate-100 px-2 py-3 border-b border-slate-200 z-10 relative font-medium">
         <span class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded-full bg-green-500"></div> 원활</span>
@@ -35,26 +79,110 @@
     </div>
 
     <!-- 지도 컨테이너 -->
-    <div id="map" class="w-full relative">
-        <!-- 배경 로딩 메시지 -->
-        <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-100 text-slate-500 p-6 text-center z-[-1]">
-            <i class="fa-solid fa-spinner fa-spin text-4xl mb-4 text-blue-400"></i>
-            <p class="font-bold text-lg mb-2">지도를 불러오는 중입니다...</p>
-            <p class="text-sm">계속 로딩 중이라면 카카오 디벨로퍼스(플랫폼 설정)에 도메인이 올바르게 등록되었는지 확인해주세요.</p>
-        </div>
-    </div>
+    <div id="map" class="w-full"></div>
 
     <script>
-        // 1. 데이터 입력 (각 기관 범례에 맞게 추가됨)
+        // 1. 데이터 입력 (이곳에 서부돌봄신호등 CSV 파일의 전체 내용을 붙여넣어주세요)
         const csvData = `구분,시설명,주소,문의처,위도,경도,정원,현원
-초등돌봄교실,인천가림초등학교,장고개로293번길 29,032-571-6230,37.49058351,126.6810501,40,15
-초등돌봄교실,인천가석초등학교,서달로 174,032-583-0271,37.51475728,126.6796755,40,35
-지역아동센터,성문 지역아동센터,서달로 126,032-579-5545,,,19,19
-지역아동센터,심곡 지역아동센터,"승학로 278, 301호",032-562-0691,,,33,28
-다함께돌봄센터,서구 다함께돌봄센터 1호점,가정로 152,032-111-2222,37.5185,126.6751,20,18
-청소년방과후아카데미,서구청소년센터,원창로 92,032-333-4444,37.5251,126.6701,40,45`;
+초등돌봄교실,인천가림초등학교,장고개로293번길 29,032-571-6230,37.49058351,126.6810501,0,0
+초등돌봄교실,인천가석초등학교,서달로 174,032-583-0271,37.51475728,126.6796755,0,0
+초등돌봄교실,인천가원초등학교,청중로478번길 6,032-569-6436,37.52921844,126.6641213,135,134
+초등돌봄교실,인천가정초등학교,장고개로 336-1,032-576-9980,37.49166135,126.6884322,0,0
+초등돌봄교실,인천가좌초등학교,장고개로309번길 5,032-576-7094,37.4901503,126.6835279,0,0
+초등돌봄교실,인천가현초등학교,염곡로 417,032-579-7388,37.52231349,126.6684961,144,144
+초등돌봄교실,인천간재울초등학교,승학로 433,032-628-7385,37.56033764,126.6722937,0,0
+초등돌봄교실,인천건지초등학교,건지로318번길 39,032-628-5855,37.49548863,126.6774856,0,0
+초등돌봄교실,인천검단초등학교,마전로115번길 24,032-563-5988,37.61079703,126.6697067,0,0
+초등돌봄교실,인천검단호수초등학교,독정로324번길 26,032-458-1100,37.60885144,126.6834777,0,0
+초등돌봄교실,인천검암초등학교,승학로599번길 45,032-564-5337,37.56796266,126.678293,0,0
+초등돌봄교실,인천경명초등학교,크리스탈로 130,032-590-9300,37.5369986,126.6373144,0,0
+초등돌봄교실,인천경서초등학교,경서로31번길 31,032-569-0483,37.55666143,126.650985,0,0
+초등돌봄교실,인천경연초등학교,차오름로 64,032-510-7215,37.5384146,126.6261709,96,88
+초등돌봄교실,인천공촌초등학교,심곡로188번길 21,032-569-8837,37.54867977,126.6832573,0,0
+초등돌봄교실,인천금곡초등학교,완정로228번길 19,032-566-2653,37.6054434,126.65061,0,0
+초등돌봄교실,인천능내초등학교,검단로540번길 23,032-628-8263,37.60244235,126.6665079,0,0
+초등돌봄교실,인천단봉초등학교,단봉로 122,032-590-8020,37.59843764,126.6377448,0,0
+초등돌봄교실,인천당하초등학교,청마로 144,032-567-6891,37.59005774,126.6776991,0,0
+초등돌봄교실,인천도담초등학교,청라커낼로 217,032-569-6657,37.52782132,126.6439914,0,0
+초등돌봄교실,인천마전초등학교,완정로34번길 23,032-567-0613,37.59749871,126.6709335,0,0
+초등돌봄교실,인천목향초등학교,고산후로 377,032-567-2207,37.61620512,126.6943003,0,0
+초등돌봄교실,인천발산초등학교,고산후로78번길 6,032-628-7474,37.59011616,126.6991478,0,0
+초등돌봄교실,인천백석초등학교,청마로 55,032-590-7881,37.58980222,126.6717483,0,0
+초등돌봄교실,인천봉수초등학교,봉오대로267번길 11-4,032-628-5510,37.52638812,126.6786861,138,138
+초등돌봄교실,인천봉화초등학교,건지로250번길 43,032-628-7561,37.49535502,126.6703195,0,0
+초등돌봄교실,인천불로초등학교,검단로744번1길 50,032-628-6644,37.61381127,126.6888476,0,0
+초등돌봄교실,인천서곶초등학교,대평로56번길 9,032-561-2015,37.54784271,126.6694055,0,0
+초등돌봄교실,인천석남서초등학교,건지로249번길 6,032-571-0049,37.50014147,126.6703935,0,0
+초등돌봄교실,인천석남초등학교,서달로130번길 4,032-571-4965,37.50977877,126.680264,0,0
+초등돌봄교실,인천신검단초등학교,금정로 55,032-500-7100,37.60908782,126.7005355,0,0
+초등돌봄교실,인천신석초등학교,새오개로 9,032-572-0184,37.51050462,126.6640321,0,0
+초등돌봄교실,인천신현북초등학교,원창로 147,032-572-0174,37.51838361,126.6667051,0,0
+초등돌봄교실,인천신현초등학교,율도로77번길 1,032-575-0962,37.51473968,126.6701041,0,0
+초등돌봄교실,인천심곡초등학교,심곡로 114,032-562-8620,37.5436333,126.6826226,40,32
+초등돌봄교실,인천아라초등학교,서로2로 42,032-440-0664,37.58493755,126.7033388,0,0
+초등돌봄교실,인천아람초등학교,이음1로 289,032-563-9601,37.58710386,126.7167189,0,0
+초등돌봄교실,인천양지초등학교,승학로197번길 11,032-628-7000,37.54002481,126.6711946,0,0
+초등돌봄교실,인천완정초등학교,완정로 99,032-569-6984,37.59847454,126.6642469,0,0
+초등돌봄교실,인천왕길초등학교,봉수대로1440번길 20,032-564-4825,37.60198104,126.6510585,0,0
+초등돌봄교실,인천원당초등학교,원당대로820번길 16,032-569-3084,37.59251428,126.6913305,0,0
+초등돌봄교실,인천은지초등학교,승학로572번길 22,032-628-7614,37.56470084,126.6849902,0,0
+초등돌봄교실,인천이음초등학교,이음1로 447,032-569-3975,37.5987693,126.7126821,0,0
+초등돌봄교실,인천창신초등학교,고산후로161번길 6,032-628-6134,37.59892346,126.6982147,0,0
+초등돌봄교실,인천천마초등학교,서달로 58-5,032-571-7395,37.5048986,126.6793047,0,0
+초등돌봄교실,인천청라초등학교,청라에메랄드로 139,032-569-5910,37.53774888,126.6556967,96,96
+초등돌봄교실,인천청람초등학교,청라커낼로 336,032-569-6912,37.53869636,126.6453133,120,117
+초등돌봄교실,인천청일초등학교,크리스탈로 46,032-628-8635,37.52925923,126.6373634,0,0
+초등돌봄교실,인천청호초등학교,청라한울로 44,032-456-9115,37.53864489,126.6415165,48,40
+초등돌봄교실,인천초은초등학교,청라에메랄드로 33,032-569-3124,37.52842319,126.6558477,0,0
+초등돌봄교실,인천한들초등학교,한중로 25,032-440-0800,37.57963661,126.6728081,0,0
+초등돌봄교실,인천한별초등학교,서로3로 201,032-453-9007,37.59736864,126.7066138,0,0
+초등돌봄교실,인천해든초등학교,서로3로 60,032-453-9200,37.58528544,126.7076761,0,0
+초등돌봄교실,인천해원초등학교,청라사파이어로140번길 5,032-560-2213,37.52761134,126.6260936,120,119
+지역아동센터,BTC 지역아동센터,심곡로 193-14,032-568-6691,,,35,0
+지역아동센터,가좌 지역아동센터,"여우재로 99, 2층",032-581-9669,,,19,0
+지역아동센터,검단 지역아동센터,검단로 501번길 69,070-7717-7582,,,29,0
+지역아동센터,그레이스힐검단 지역아동센터,"검단로623번길 17, 2층",032-566-8920,,,32,0
+지역아동센터,꿈나무 지역아동센터,"가석로156번길 14, 3층",032-577-4025,,,23,0
+지역아동센터,꿈이자라는 지역아동센터,건지로318번안길 17,032-577-6239,,,35,0
+지역아동센터,내일을 여는 교실 지역아동센터,"율도로 109, 202호",032-577-5218,,,35,0
+지역아동센터,늘푸른 지역아동센터,"가정로126번길 29, 3층",032-575-7500,,,35,0
+지역아동센터,백합 지역아동센터,"장고개로287번길 6-2, 2층",032-577-4075,,,19,0
+지역아동센터,새벽공부방 지역아동센터,장고개로 264,032-582-2862,,,19,0
+지역아동센터,새일꾼 지역아동센터,승학로382번길 6,032-564-0675,,,19,0
+지역아동센터,샘물 지역아동센터,염곡로383번길 24,032-568-3391,,,28,0
+지역아동센터,서곶 지역아동센터,"승학로287번길 27, 2층",070-7783-6900,,,25,0
+지역아동센터,서구공립지역아동센터,율도로16번길 18,032-582-1701,,,29,0
+지역아동센터,서로사랑하는 지역아동센터,완정로10번길 8,032-565-5060,,,25,0
+지역아동센터,석남 지역아동센터,"서달로137번길 13, 2~3층",032-579-3654,,,29,0
+지역아동센터,성문 지역아동센터,서달로 126,032-579-5545,,,19,0
+지역아동센터,심곡 지역아동센터,"승학로 278, 301호",032-562-0691,,,33,0
+지역아동센터,연희 지역아동센터,"심곡로 17, 2층",032-562-9119,37.5410047,126.6720835,35,0
+지역아동센터,오트 지역아동센터,"서달로123번길 14, 제301호",032-573-5755,,,32,0
+지역아동센터,옹기종기 지역아동센터,간촌로31번길 16,032-565-2554,,,24,0
+지역아동센터,위누리 지역아동센터,길주로 142번길 24-1,032-584-2047,,,19,0
+지역아동센터,은가비 지역아동센터,건지로284번길 3-4,032-576-1388,,,25,0
+지역아동센터,진주공부방 지역아동센터,"신진말로33번길 8-15, 2층",032-577-2728,,,35,0
+지역아동센터,푸른꿈 지역아동센터,검단로435번길 9-1,032-562-5702,,,19,0
+지역아동센터,푸른솔생활학교지역아동센터,"가정로138번길 14, 2층",032-577-4009,,,31,0
+지역아동센터,해바라기 지역아동센터,"열우물로 247, 5층",032-581-4043,,,35,0
+지역아동센터,행복한 지역아동센터,"염곡로 307-1, 2층",032-581-7395,,,19,0
+지역아동센터,행복한동산 지역아동센터,완정로178번길 52,032-563-3393,,,40,0
+지역아동센터,호산나 지역아동센터,"원적로 120, 403호",070-7527-5213,,,25,0
+다함께돌봄센터,다함께돌봄센터 1호점,봉오재3로 14,032-567-2123,,,20,0
+다함께돌봄센터,다함께돌봄센터 2호점,"봉오재1로 49, 2층",032-710-6530,,,20,0
+다함께돌봄센터,다함께돌봄센터 3호점,청마로167번길 19,032-715-7779,,,20,0
+다함께돌봄센터,다함께돌봄센터 4호점,비즈니스로 166,032-566-0725,,,20,0
+다함께돌봄센터,다함께돌봄센터 5호점,"가현로 41, 1층",032-563-2122,,,20,0
+다함께돌봄센터,다함께돌봄센터 6호점,청라라임로85,032-567-1929,,,20,0
+다함께돌봄센터,다함께돌봄센터 7호점,"이음3로 220, 1층",032-567-7123,,,35,0
+다함께돌봄센터,다함께돌봄센터 8호점,"매발로 130, 1층",032-563-8174,,,20,0
+다함께돌봄센터,다함께돌봄센터 9호점,"이음3로 130, 1층",032-561-1575,,,20,0
+다함께돌봄센터,다함께돌봄센터 10호점,"염곡로 311번길 18-1, 2층",032-577-8208,,,20,0
+다함께돌봄센터,다함께돌봄센터 11호점,"청라커낼로 163, 1층",032-569-6465,,,20,0
+다함께돌봄센터,다함께돌봄센터 12호점,오동로 25,032-266-0756,,,40,0
+청소년방과후아카데미,서구청소년센터,"원창로 92, 2층",032-579-1222,37.5173687,126.6592524,40,0`;
 
-        // 2. CSV 파싱 함수
+        // 2. CSV 파싱 함수 (주소 내 쉼표 등 따옴표로 묶인 데이터 처리)
         function parseCSV(str) {
             const result = [];
             let row = [];
@@ -63,7 +191,7 @@
             for (let i = 0; i < str.length; i++) {
                 const char = str[i];
                 if (char === '"') {
-                    if (inQuotes && str[i+1] === '"') { val += '"'; i++; }
+                    if (inQuotes && str[i+1] === '"') { val += '"'; i++; } // 이스케이프된 따옴표
                     else { inQuotes = !inQuotes; }
                 } else if (char === ',' && !inQuotes) {
                     row.push(val.trim()); val = '';
@@ -86,46 +214,52 @@
             });
         }
 
-        // 전역 변수로 지도, 지오코더, 마커 데이터 선언
-        let map;
-        let geocoder;
-        let markersData = [];
-
-        // 3. 주소를 좌표로 변환하는 함수 (Promise 래퍼)
-        function getCoordinatesFromAddress(address) {
-            return new Promise((resolve) => {
-                if (!geocoder) { resolve(null); return; }
-                const cleanAddress = address.split(',')[0].replace(/ \d+층$/, '').replace(/ 제?\d+호$/, '').trim();
-                geocoder.addressSearch(cleanAddress, function(result, status) {
-                    if (status === kakao.maps.services.Status.OK) {
-                        resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
-                    } else {
-                        resolve(null);
-                    }
-                });
-            });
+        // 3. 주소를 좌표로 변환 (Geocoding API)
+        async function getCoordinatesFromAddress(address) {
+            // 상세 주소(층, 호수)를 제외하고 도로명까지만 추출하여 검색 정확도 향상
+            const cleanAddress = address.split(',')[0].replace(/ \d+층$/, '').replace(/ 제?\d+호$/, '').trim();
+            // 지역명(인천 서구)를 붙여 검색
+            const query = `인천 서구 ${cleanAddress}`;
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+                }
+            } catch (error) {
+                console.error('Geocoding 오류:', error);
+            }
+            return null;
         }
 
-        // 4. 마커 렌더링 함수
-        async function renderMarkers(facilities) {
-            markersData.forEach(item => {
-                item.marker.setMap(null);
-                item.tooltip.setMap(null);
-            });
-            markersData = [];
+        // 4. 지도 초기화
+        const map = L.map('map').setView([37.515, 126.680], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-            let bounds = new kakao.maps.LatLngBounds();
-            let hasValidMarkers = false;
+        let markersLayer = L.featureGroup().addTo(map); // 마커들을 그룹으로 묶어 관리
+        let markersData = []; // 필터링을 위해 마커 객체와 데이터를 함께 저장하는 배열
+
+        // 5. 마커 렌더링 함수
+        async function renderMarkers(facilities) {
+            markersLayer.clearLayers(); // 기존 마커 초기화
+            markersData = []; // 데이터 초기화
 
             for (const fac of facilities) {
                 let lat = parseFloat(fac['위도']);
                 let lng = parseFloat(fac['경도']);
                 
-                // 위도/경도가 없으면 주소를 통해 카카오 지오코딩 API 검색
+                // 위도/경도가 없으면 주소를 통해 좌표 검색 (Geocoding)
                 if (isNaN(lat) || isNaN(lng)) {
                     const address = fac['주소'];
                     if (!address) continue;
                     
+                    // API 호출 제한 방지를 위해 1초 간격 대기
+                    await new Promise(resolve => setTimeout(resolve, 1000)); 
                     const coords = await getCoordinatesFromAddress(address);
                     
                     if (coords) {
@@ -133,13 +267,14 @@
                         lng = coords.lng;
                     } else {
                         console.warn(`좌표를 찾을 수 없습니다: ${fac['시설명']} (${address})`);
-                        continue; 
+                        continue; // 좌표를 못 찾으면 스킵
                     }
                 }
 
                 const capacity = parseInt(fac['정원']) || 0;
                 const current = parseInt(fac['현원']) || 0;
                 
+                // 신호등 색상 로직 계산
                 let color = '#94a3b8'; // 기본 회색
                 if (capacity > 0) {
                     const ratio = current / capacity;
@@ -148,63 +283,51 @@
                     else color = '#22c55e';                 // 원활 (초록)
                 }
 
-                const position = new kakao.maps.LatLng(lat, lng);
-
-                const markerDOM = document.createElement('div');
-                markerDOM.className = 'w-5 h-5 rounded-full border-2 border-white cursor-pointer shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform hover:scale-110';
-                markerDOM.style.backgroundColor = color;
-
-                const marker = new kakao.maps.CustomOverlay({
-                    position: position,
-                    content: markerDOM,
-                    yAnchor: 0.5,
-                    xAnchor: 0.5,
-                    zIndex: 1
+                const marker = L.circleMarker([lat, lng], {
+                    radius: 10,
+                    fillColor: color,
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.95
                 });
 
+                // 마우스 올렸을 때(Hover) 나타나는 툴팁 (시설명, 현원/정원, 주소, 연락처)
                 const tooltipContent = `
-                    <div class="custom-tooltip mb-3">
-                        <div class="text-center mb-1">
-                            <b>${fac['시설명']}</b> 
-                            <span class="text-slate-500 font-bold ml-1">(${current}/${capacity > 0 ? capacity : '-'})</span>
-                        </div>
-                        <div class="text-left text-xs text-slate-600 mt-1 flex flex-col gap-1">
-                            <span class="flex items-start gap-1"><i class="fa-solid fa-location-dot mt-0.5 w-3 text-center"></i> <span class="break-keep">${fac['주소']}</span></span>
-                            <span class="flex items-center gap-1"><i class="fa-solid fa-phone w-3 text-center"></i> ${fac['문의처'] || '정보없음'}</span>
-                        </div>
+                    <div class="text-center mb-1">
+                        <b>${fac['시설명']}</b> 
+                        <span class="text-slate-500 font-bold ml-1">(${current}/${capacity > 0 ? capacity : '-'})</span>
+                    </div>
+                    <div class="text-left text-xs text-slate-600 mt-1 flex flex-col gap-1">
+                        <span class="flex items-start gap-1"><i class="fa-solid fa-location-dot mt-0.5 w-3 text-center"></i> ${fac['주소']}</span>
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-phone w-3 text-center"></i> ${fac['문의처'] || '정보없음'}</span>
                     </div>
                 `;
                 
-                const tooltip = new kakao.maps.CustomOverlay({
-                    position: position,
-                    content: tooltipContent,
-                    yAnchor: 1, 
-                    xAnchor: 0.5,
-                    zIndex: 10
+                marker.bindTooltip(tooltipContent, {
+                    direction: 'top',
+                    className: 'custom-tooltip',
+                    offset: [0, -10]
                 });
 
-                markerDOM.addEventListener('mouseenter', () => tooltip.setMap(map));
-                markerDOM.addEventListener('mouseleave', () => tooltip.setMap(null));
-
-                marker.setMap(map);
-                bounds.extend(position);
-                hasValidMarkers = true;
+                markersLayer.addLayer(marker);
                 
+                // 마커와 타입 정보를 배열에 저장 (필터링용)
                 markersData.push({
                     type: fac['구분'],
-                    marker: marker,
-                    tooltip: tooltip,
-                    position: position
+                    marker: marker
                 });
             }
             
-            if (hasValidMarkers) {
-                map.setBounds(bounds);
+            // 데이터가 지도에 전부 들어오게 화면 확대 범위 자동 조절
+            if (markersLayer.getLayers().length > 0) {
+                map.fitBounds(markersLayer.getBounds(), { padding: [50, 50], maxZoom: 15 });
             }
         }
 
-        // 5. 필터 변경 함수
+        // 6. 필터 변경 함수
         function setFilter(selectedType) {
+            // 버튼 스타일 업데이트 (선택된 버튼 파란색, 나머지 흰색)
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 if (btn.id === 'filter-' + selectedType) {
                     btn.classList.remove('border-slate-200', 'bg-white', 'text-slate-600');
@@ -215,53 +338,29 @@
                 }
             });
 
-            let bounds = new kakao.maps.LatLngBounds();
+            markersLayer.clearLayers(); // 지도에서 마커 모두 제거
+            
+            let bounds = L.latLngBounds();
             let visibleCount = 0;
 
+            // 선택된 타입에 맞는 마커만 다시 추가
             markersData.forEach(item => {
                 if (selectedType === '전체' || item.type === selectedType) {
-                    item.marker.setMap(map);
-                    bounds.extend(item.position);
+                    markersLayer.addLayer(item.marker);
+                    bounds.extend(item.marker.getLatLng());
                     visibleCount++;
-                } else {
-                    item.marker.setMap(null);
-                    item.tooltip.setMap(null);
                 }
             });
 
+            // 필터링된 마커 기준으로 지도 영역 재조정
             if (visibleCount > 0) {
-                map.setBounds(bounds);
+                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
             }
         }
 
-        // 6. 애플리케이션 초기화 (카카오맵 API 완전 로드 대기)
-        function initApp() {
-            // 카카오 객체가 없거나 서비스가 아직 준비되지 않았다면 100ms 후 재시도
-            if (typeof kakao === 'undefined' || !kakao.maps || !kakao.maps.services) {
-                setTimeout(initApp, 100);
-                return;
-            }
-
-            kakao.maps.load(function() {
-                // 지도 생성 (이 시점에서는 카카오맵 로드가 100% 보장됨)
-                const mapContainer = document.getElementById('map');
-                const mapOption = { 
-                    center: new kakao.maps.LatLng(37.515, 126.680),
-                    level: 6 
-                };
-                map = new kakao.maps.Map(mapContainer, mapOption);
-                
-                // 주소 변환기 생성
-                geocoder = new kakao.maps.services.Geocoder();
-
-                // 데이터 렌더링 시작
-                const initialFacilities = parseCSV(csvData);
-                renderMarkers(initialFacilities);
-            });
-        }
-
-        // 스크립트 실행 시작
-        initApp();
+        // 처음 로딩 시 데이터 렌더링
+        const initialFacilities = parseCSV(csvData);
+        renderMarkers(initialFacilities);
         
     </script>
 </body>
