@@ -73,7 +73,7 @@
                 <div class="mt-3 flex justify-between text-xs text-gray-500 bg-gray-50 p-2 rounded">
                     <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div>여유 (5명 이상)</span>
                     <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-yellow-400"></div>보통 (1~4명)</span>
-                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div>만원</span>
+                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div>대기</span>
                 </div>
             </div>
 
@@ -116,7 +116,7 @@
             const available = cap - cur;
             if (available >= 5) return { status: `여유 (${available}자리)`, color: 'green', className: 'marker-green' };
             if (available > 0) return { status: `보통 (${available}자리)`, color: 'yellow', className: 'marker-yellow' };
-            return { status: '만원 (0자리)', color: 'red', className: 'marker-red' };
+            return { status: '대기 (0자리)', color: 'red', className: 'marker-red' };
         }
 
         // 지도 초기화
