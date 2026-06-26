@@ -345,7 +345,8 @@
 
             const infowindow = new kakao.maps.InfoWindow({
                 content: infowindowContent,
-                removable: true
+                removable: true,
+                zIndex: 100 // ★ 정보창이 항상 마커들보다 위에 보이도록 zIndex 추가
             });
 
             // 마커 클릭 이벤트
