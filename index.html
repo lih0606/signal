@@ -96,6 +96,19 @@
             <!-- 상태 필터 영역 -->
             <div class="p-3 border-b shrink-0 bg-gray-50/50">
                 <div class="flex justify-between gap-1 text-[11px] sm:text-xs text-gray-600 bg-white p-1 rounded-lg border shadow-sm">
+                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50" data-status="green">
+                        <div class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm"></div>여유 <span class="hidden sm:inline">(5명 이상)</span>
+                    </button>
+                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50" data-status="yellow">
+                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-sm"></div>보통 <span class="hidden sm:inline">(1~4명)</span>
+                    </button>
+                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50" data-status="red">
+                        <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm"></div>대기
+                    </button>
+                </div>
+            </div>
+
+            <!-- 시설 리스트 영역 -->
             <div class="flex-1 overflow-y-auto p-2" id="facilityList">
                 <div class="text-center py-10 text-gray-500">데이터를 불러오는 중입니다...</div>
             </div>
