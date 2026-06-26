@@ -265,7 +265,8 @@
             // 마커 클릭 이벤트
             content.onclick = function() {
                 if(activeOverlay) activeOverlay.close();
-                infowindow.open(map, customOverlay);
+                infowindow.setPosition(position); // 커스텀 오버레이 대신 위치를 직접 지정
+                infowindow.open(map); // 두 번째 인자(customOverlay) 제거
                 activeOverlay = infowindow;
                 map.panTo(position);
             };
