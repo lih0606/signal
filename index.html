@@ -82,7 +82,7 @@
                 <div class="mt-3 flex justify-between text-xs text-gray-500 bg-gray-50 p-2 rounded">
                     <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div>여유 (5명 이상)</span>
                     <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-yellow-400"></div>보통 (1~4명)</span>
-                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div>만원</span>
+                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div>대기</span>
                 </div>
             </div>
 
@@ -123,7 +123,7 @@
                     <ul class="space-y-1">
                         <li><span class="text-green-600 font-bold"><i class="fas fa-circle mr-1 text-xs"></i>여유(초록)</span> : 5명 이상 여유 있음</li>
                         <li><span class="text-yellow-600 font-bold"><i class="fas fa-circle mr-1 text-xs"></i>보통(노랑)</span> : 1~4명 여유 있음</li>
-                        <li><span class="text-red-500 font-bold"><i class="fas fa-circle mr-1 text-xs"></i>만원(빨강)</span> : 남은 자리 없음</li>
+                        <li><span class="text-red-500 font-bold"><i class="fas fa-circle mr-1 text-xs"></i>대기(빨강)</span> : 남은 자리 없음</li>
                     </ul>
                 </div>
                 <p class="text-xs text-red-500 font-medium">* 실제 현원과 차이가 있을 수 있으니 정확한 정보는 각 시설에 문의해 주시기 바랍니다.</p>
@@ -179,7 +179,7 @@
             const available = cap - cur;
             if (available >= 5) return { status: `여유 (${available}자리)`, color: 'green', className: 'marker-green' };
             if (available > 0) return { status: `보통 (${available}자리)`, color: 'yellow', className: 'marker-yellow' };
-            return { status: '만원 (0자리)', color: 'red', className: 'marker-red' };
+            return { status: '대기 (0자리)', color: 'red', className: 'marker-red' };
         }
 
         // 지도 초기화
