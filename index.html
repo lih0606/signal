@@ -41,8 +41,9 @@
         .marker-gray { background-color: #94a3b8; }
 
         .infowindow-content {
-            padding: 10px;
-            min-width: 200px;
+            padding: 10px 15px 10px 10px; /* 우측 닫기(X) 버튼 공간 확보를 위해 여백 추가 */
+            min-width: 220px;
+            width: max-content; /* 글자 길이에 맞춰 박스 너비 자동 확장 */
             font-size: 14px;
             border-radius: 8px;
         }
@@ -330,7 +331,7 @@
             // 인포윈도우 컨텐츠
             const infowindowContent = `
                 <div class="infowindow-content">
-                    <div class="font-bold text-lg mb-1 text-blue-700">${item['시설명']}</div>
+                    <div class="font-bold text-lg mb-1 text-blue-700 whitespace-nowrap pr-4">${item['시설명']}</div>
                     <div class="text-xs text-gray-500 mb-2">${item['구분']}</div>
                     <div class="flex items-center gap-2 mb-2 bg-gray-50 p-2 rounded">
                         <div class="w-3 h-3 rounded-full bg-${light.color}-500 ${light.color==='yellow'?'bg-yellow-400':''}"></div>
