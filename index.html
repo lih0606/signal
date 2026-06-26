@@ -107,6 +107,39 @@
         </section>
     </main>
 
+    <!-- 공지사항 모달 -->
+    <div id="noticeModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-md overflow-hidden flex flex-col">
+            <div class="bg-blue-600 text-white px-4 py-3 flex justify-between items-center">
+                <h2 class="font-bold text-lg"><i class="fas fa-bullhorn mr-2"></i>공지사항</h2>
+                <button onclick="closeNotice()" class="text-white hover:text-gray-200 focus:outline-none">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-5 text-gray-700 text-sm leading-relaxed">
+                <p class="mb-3 font-semibold text-base text-gray-800">인천서부돌봄신호등에 오신 것을 환영합니다!</p>
+                <p class="mb-2">본 사이트는 인천서부교육지원청 관내 돌봄 시설의 정원 및 현원 정보를 제공하여 학부모님들의 편리한 시설 이용을 돕고자 제작되었습니다.</p>
+                <div class="bg-gray-50 p-3 rounded mb-3 border">
+                    <ul class="space-y-1">
+                        <li><span class="text-green-600 font-bold"><i class="fas fa-circle mr-1 text-xs"></i>여유(초록)</span> : 5명 이상 여유 있음</li>
+                        <li><span class="text-yellow-600 font-bold"><i class="fas fa-circle mr-1 text-xs"></i>보통(노랑)</span> : 1~4명 여유 있음</li>
+                        <li><span class="text-red-500 font-bold"><i class="fas fa-circle mr-1 text-xs"></i>만원(빨강)</span> : 남은 자리 없음</li>
+                    </ul>
+                </div>
+                <p class="text-xs text-red-500 font-medium">* 실제 현원과 차이가 있을 수 있으니 정확한 정보는 각 시설에 문의해 주시기 바랍니다.</p>
+            </div>
+            <div class="bg-gray-100 px-4 py-3 border-t flex justify-between items-center">
+                <label class="flex items-center text-sm text-gray-600 cursor-pointer hover:text-gray-800">
+                    <input type="checkbox" id="hideToday" class="mr-2 rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                    오늘 하루 보지 않기
+                </label>
+                <button onclick="closeNotice()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-1.5 rounded text-sm font-bold transition-colors shadow-sm">
+                    확인
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 전역 변수 설정
         let map;
@@ -114,6 +147,27 @@
         let allFacilities = [];
         let markers = [];
         let activeOverlay = null;
+
+        // 공지사항 모달 제어 함수
+        function checkNotice() {
+            const hideNotice = localStorage.getItem('hideNotice_seobu');
+            const now = new Date().getTime();
+            
+            // 저장된 값이 없거나, 저장된 만료 시간(24시간)이 지났으면 팝업 표시
+            if (!hideNotice || now > parseInt(hideNotice)) {
+                document.getElementById('noticeModal').classList.remove('hidden');
+            }
+        }
+
+        function closeNotice() {
+            const hideToday = document.getElementById('hideToday').checked;
+            if (hideToday) {
+                // 현재 시간부터 24시간(86400000ms) 동안 팝업 숨김 설정
+                const expireTime = new Date().getTime() + 24 * 60 * 60 * 1000;
+                localStorage.setItem('hideNotice_seobu', expireTime);
+            }
+            document.getElementById('noticeModal').classList.add('hidden');
+        }
 
         // 신호등 상태 계산 함수
         function getTrafficLight(capacity, current) {
@@ -420,8 +474,11 @@
         // 검색창 이벤트
         document.getElementById('searchInput').addEventListener('input', filterAndRender);
 
-        // 페이지 로드 완료 시 맵 초기화
-        window.onload = initMap;
+        // 페이지 로드 완료 시 맵 초기화 및 공지사항 확인
+        window.onload = function() {
+            initMap();
+            checkNotice();
+        };
 
     </script>
 </body>
