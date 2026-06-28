@@ -14,7 +14,6 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .map-marker { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; z-index: 10; }
-        .map-marker:hover { transform: scale(1.2); }
         .marker-green { background-color: #22c55e; }
         .marker-yellow { background-color: #eab308; }
         .marker-red { background-color: #ef4444; }
@@ -25,25 +24,31 @@
 </head>
 <body class="bg-gray-50 h-screen flex flex-col font-sans text-gray-800 overflow-hidden">
 
-    <header class="bg-white shadow-sm z-20 py-3 px-6 flex flex-wrap justify-between items-center gap-3 shrink-0">
-        <h1 class="text-lg font-bold text-gray-800">서부돌봄신호등</h1>
-        <div class="flex flex-1 justify-end items-center gap-2">
-            <input type="text" id="searchInput" placeholder="시설명 검색" class="w-48 px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button onclick="showStatusModal()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-indigo-700">서부돌봄현황</button>
+    <header class="bg-white shadow-sm z-20 py-3 px-6 flex flex-wrap justify-between items-center gap-4 shrink-0">
+        <!-- 타이틀 + 로고 -->
+        <h1 class="text-lg font-bold text-gray-800 flex items-center gap-2 shrink-0">
+            <i class="fas fa-traffic-light text-indigo-600"></i> 서부돌봄신호등
+        </h1>
+        
+        <!-- 구분 필터 (헤더 가운데로) -->
+        <div class="flex-1 flex flex-wrap justify-center gap-2 px-4" id="categoryFilters">
+            <!-- JS로 버튼 생성 -->
+        </div>
+
+        <!-- 검색 및 버튼 -->
+        <div class="flex items-center gap-2 shrink-0">
+            <input type="text" id="searchInput" placeholder="시설명 검색" class="w-32 sm:w-48 px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="showStatusModal()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-indigo-700">현황</button>
         </div>
     </header>
 
     <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
         <aside class="w-full md:w-96 bg-white border-r flex flex-col h-1/2 md:h-full z-10 overflow-y-auto">
-            <!-- 구분 필터 -->
-            <div class="p-3 border-b flex flex-wrap gap-2" id="categoryFilters">
-                <button class="category-btn active px-3 py-1 rounded-full text-xs font-bold border border-gray-300 bg-gray-100" data-category="all">전체</button>
-            </div>
             <!-- 상태 필터 -->
             <div class="p-3 border-b flex gap-2 justify-center">
-                <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-green-500 text-green-600" data-status="green">여유</button>
-                <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-yellow-500 text-yellow-600" data-status="yellow">보통</button>
-                <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-red-500 text-red-600" data-status="red">대기</button>
+                <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-green-500 text-green-600 hover:bg-green-50" data-status="green">여유</button>
+                <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-yellow-500 text-yellow-600 hover:bg-yellow-50" data-status="yellow">보통</button>
+                <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-red-500 text-red-600 hover:bg-red-50" data-status="red">대기</button>
             </div>
             <div class="flex-1 p-2" id="facilityList"></div>
         </aside>
@@ -52,6 +57,7 @@
         </section>
     </main>
 
+    <!-- 현황 팝업 -->
     <div id="statusModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 hidden">
         <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-lg p-6">
             <div class="flex justify-between items-center mb-4">
@@ -100,12 +106,13 @@
 
         function processData(data) {
             allFacilities = data;
-            const cats = [...new Set(data.map(i => i['구분']))];
+            const cats = ['전체', ...new Set(data.map(i => i['구분']).filter(Boolean))];
             const container = document.getElementById('categoryFilters');
             cats.forEach(c => {
                 const b = document.createElement('button');
-                b.className = 'category-btn px-3 py-1 rounded-full text-xs font-bold border border-gray-300';
+                b.className = 'category-btn px-3 py-1 rounded-full text-xs font-bold border border-gray-300 bg-white hover:bg-gray-50';
                 b.innerText = c; b.dataset.category = c;
+                if(c === '전체') b.classList.add('filter-active');
                 b.onclick = () => { document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('filter-active')); b.classList.add('filter-active'); filterData(); };
                 container.appendChild(b);
             });
@@ -134,11 +141,15 @@
 
             allFacilities.forEach(item => {
                 const light = getTrafficLight(item['정원'], item['현원']);
-                const matchCat = cat === 'all' || item['구분'] === cat;
+                const matchCat = cat === '전체' || item['구분'] === cat;
                 const matchStatus = status === 'all' || light.color === status;
                 const matchTerm = item['시설명'].includes(term);
                 item.marker.setMap(matchCat && matchStatus && matchTerm ? map : null);
             });
+            renderList(allFacilities.filter(i => {
+                const light = getTrafficLight(i['정원'], i['현원']);
+                return (cat === '전체' || i['구분'] === cat) && (status === 'all' || light.color === status) && i['시설명'].includes(term);
+            }));
         }
 
         function renderList(data) {
@@ -146,7 +157,7 @@
             list.innerHTML = '';
             data.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'bg-white p-3 rounded-lg border mb-2 cursor-pointer';
+                card.className = 'bg-white p-3 rounded-lg border mb-2 cursor-pointer hover:bg-gray-50';
                 card.innerHTML = `<h3 class="font-bold text-sm">${item['시설명']}</h3><p class="text-xs text-gray-500">${item['구분']}</p>`;
                 card.onclick = () => { map.panTo(item.position); };
                 list.appendChild(card);
