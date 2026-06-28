@@ -14,28 +14,24 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .map-marker { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; z-index: 10; }
+        .map-marker:hover { transform: scale(1.2); z-index: 100; }
         .marker-green { background-color: #22c55e; }
         .marker-yellow { background-color: #eab308; }
         .marker-red { background-color: #ef4444; }
         .marker-gray { background-color: #94a3b8; }
-        .infowindow-content { padding: 10px; min-width: 200px; width: max-content; font-size: 14px; border-radius: 8px; }
+        .infowindow-content { padding: 10px; min-width: 200px; width: max-content; font-size: 14px; border-radius: 8px; z-index: 1000; }
         .filter-active { background-color: #4f46e5 !important; color: white !important; }
+        @keyframes bounce-short { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .animate-bounce-short { animation: bounce-short 0.5s ease-in-out; }
     </style>
 </head>
 <body class="bg-gray-50 h-screen flex flex-col font-sans text-gray-800 overflow-hidden">
 
     <header class="bg-white shadow-sm z-20 py-3 px-6 flex flex-wrap justify-between items-center gap-4 shrink-0">
-        <!-- 타이틀 + 로고 -->
         <h1 class="text-lg font-bold text-gray-800 flex items-center gap-2 shrink-0">
             <i class="fas fa-traffic-light text-indigo-600"></i> 서부돌봄신호등
         </h1>
-        
-        <!-- 구분 필터 (헤더 가운데로) -->
-        <div class="flex-1 flex flex-wrap justify-center gap-2 px-4" id="categoryFilters">
-            <!-- JS로 버튼 생성 -->
-        </div>
-
-        <!-- 검색 및 버튼 -->
+        <div class="flex-1 flex flex-wrap justify-center gap-2 px-4" id="categoryFilters"></div>
         <div class="flex items-center gap-2 shrink-0">
             <input type="text" id="searchInput" placeholder="시설명 검색" class="w-32 sm:w-48 px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button onclick="showStatusModal()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-indigo-700">현황</button>
@@ -44,7 +40,6 @@
 
     <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
         <aside class="w-full md:w-96 bg-white border-r flex flex-col h-1/2 md:h-full z-10 overflow-y-auto">
-            <!-- 상태 필터 -->
             <div class="p-3 border-b flex gap-2 justify-center">
                 <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-green-500 text-green-600 hover:bg-green-50" data-status="green">여유</button>
                 <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-yellow-500 text-yellow-600 hover:bg-yellow-50" data-status="yellow">보통</button>
@@ -57,7 +52,6 @@
         </section>
     </main>
 
-    <!-- 현황 팝업 -->
     <div id="statusModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 hidden">
         <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-lg p-6">
             <div class="flex justify-between items-center mb-4">
@@ -65,6 +59,16 @@
                 <button onclick="document.getElementById('statusModal').classList.add('hidden')" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
             <div id="statusContent" class="overflow-x-auto"></div>
+        </div>
+    </div>
+
+    <div id="noticeModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-md p-6">
+            <h2 class="text-xl font-bold text-blue-600 mb-4"><i class="fas fa-bullhorn mr-2"></i>공지사항</h2>
+            <p class="text-sm mb-4">인천서부교육지원청 관내 돌봄 시설 정보 서비스입니다.</p>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeNotice()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold">확인</button>
+            </div>
         </div>
     </div>
 
@@ -80,7 +84,7 @@
                 stats[cat].capacity += parseInt(f['정원']) || 0;
                 stats[cat].current += parseInt(f['현원']) || 0;
             });
-            let html = '<table class="w-full text-sm text-left border-collapse"><thead><tr class="bg-gray-100"><th class="p-2">구분</th><th class="p-2">개수</th><th class="p-2">총정원</th><th class="p-2">이용학생</th></tr></thead><tbody>';
+            let html = '<table class="w-full text-sm text-left border-collapse"><thead><tr class="bg-gray-100"><th class="p-2">구분</th><th class="p-2">개수</th><th class="p-2">정원</th><th class="p-2">현원</th></tr></thead><tbody>';
             for (let cat in stats) { html += `<tr><td class="p-2 border-b font-bold">${cat}</td><td class="p-2 border-b">${stats[cat].count}</td><td class="p-2 border-b">${stats[cat].capacity}</td><td class="p-2 border-b">${stats[cat].current}</td></tr>`; }
             html += '</tbody></table>';
             document.getElementById('statusContent').innerHTML = html;
@@ -125,17 +129,28 @@
 
         function createMarker(item, position) {
             const light = getTrafficLight(item['정원'], item['현원']);
+            let icon = '<i class="fas fa-map-marker-alt"></i>';
+            if (item['구분'] === '초등돌봄교실') icon = '<i class="fas fa-school"></i>';
+            else if (item['구분'] === '다함께돌봄센터') icon = '<i class="fas fa-building"></i>';
+            else if (item['구분'] === '청소년방과후아카데미') icon = '<i class="fas fa-star"></i>';
+            else if (item['구분'] === '지역아동센터') icon = '<i class="fas fa-home"></i>';
+            
             const content = document.createElement('div');
             content.className = `map-marker ${light.className}`;
-            content.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
+            content.innerHTML = icon;
+            content.title = item['시설명'];
+            
             const overlay = new kakao.maps.CustomOverlay({ position, content, yAnchor: 0.5, zIndex: 100 });
             overlay.setMap(map);
             item.marker = overlay;
             item.position = position;
+
+            const iw = new kakao.maps.InfoWindow({ content: `<div class="infowindow-content"><h3 class="font-bold whitespace-nowrap">${item['시설명']}</h3><p>${item['구분']}</p><p>${light.status}</p></div>`, removable: true });
+            content.onclick = () => { if(activeOverlay) activeOverlay.close(); iw.open(map, overlay); activeOverlay = iw; map.panTo(position); };
         }
 
         function filterData() {
-            const cat = document.querySelector('.category-btn.filter-active')?.dataset.category || 'all';
+            const cat = document.querySelector('.category-btn.filter-active')?.dataset.category || '전체';
             const status = document.querySelector('.status-filter.filter-active')?.dataset.status || 'all';
             const term = document.getElementById('searchInput').value;
 
@@ -157,19 +172,24 @@
             list.innerHTML = '';
             data.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'bg-white p-3 rounded-lg border mb-2 cursor-pointer hover:bg-gray-50 transition-colors';
+                card.className = 'bg-white p-3 rounded-lg border mb-2 cursor-pointer hover:bg-gray-50';
                 card.innerHTML = `<h3 class="font-bold text-sm">${item['시설명']}</h3><p class="text-xs text-gray-500">${item['구분']}</p>`;
-                card.onclick = () => { 
-                    map.panTo(item.position); 
-                    if(item.marker) item.marker.getContent().click(); // 리스트 클릭 시 상세 정보 팝업도 같이 열기
-                };
+                card.onclick = () => { map.panTo(item.position); item.marker.getContent().click(); };
                 list.appendChild(card);
             });
         }
 
         document.querySelectorAll('.status-filter').forEach(btn => btn.onclick = () => { btn.classList.toggle('filter-active'); filterData(); });
-        document.getElementById('searchInput').oninput = filterData;
-        window.onload = initMap;
+        document.getElementById('searchInput').oninput = (e) => {
+            if (e.target.value.replace(/\s/g, '') === '일하기싫어') {
+                const dDay = Math.ceil((new Date('2027-03-01').getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                alert(`교사로 돌아가기까지 ${dDay}일 남았습니다.`);
+                e.target.value = '';
+            }
+            filterData();
+        };
+        window.onload = () => { initMap(); document.getElementById('noticeModal').classList.remove('hidden'); };
+        function closeNotice() { document.getElementById('noticeModal').classList.add('hidden'); }
     </script>
 </body>
 </html>
