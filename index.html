@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>인천서부돌봄신호등</title>
+    <title>서부돌봄신호등</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,13 +20,13 @@
         .marker-red { background-color: #ef4444; }
         .marker-gray { background-color: #94a3b8; }
         .infowindow-content { padding: 10px; min-width: 200px; width: max-content; font-size: 14px; border-radius: 8px; }
+        .filter-active { background-color: #4f46e5 !important; color: white !important; }
     </style>
 </head>
 <body class="bg-gray-50 h-screen flex flex-col font-sans text-gray-800 overflow-hidden">
+
     <header class="bg-white shadow-sm z-20 py-3 px-6 flex flex-wrap justify-between items-center gap-3 shrink-0">
-        <div class="flex items-center gap-3">
-            <h1 class="text-lg font-bold text-gray-800 hidden sm:block">인천서부돌봄신호등</h1>
-        </div>
+        <h1 class="text-lg font-bold text-gray-800">서부돌봄신호등</h1>
         <div class="flex flex-1 justify-end items-center gap-2">
             <input type="text" id="searchInput" placeholder="시설명 검색" class="w-48 px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button onclick="showStatusModal()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-indigo-700">서부돌봄현황</button>
@@ -34,13 +34,18 @@
     </header>
 
     <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
-        <aside class="w-full md:w-96 bg-white border-r flex flex-col h-1/2 md:h-full z-10">
+        <aside class="w-full md:w-96 bg-white border-r flex flex-col h-1/2 md:h-full z-10 overflow-y-auto">
+            <!-- 구분 필터 -->
+            <div class="p-3 border-b flex flex-wrap gap-2" id="categoryFilters">
+                <button class="category-btn active px-3 py-1 rounded-full text-xs font-bold border border-gray-300 bg-gray-100" data-category="all">전체</button>
+            </div>
+            <!-- 상태 필터 -->
             <div class="p-3 border-b flex gap-2 justify-center">
                 <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-green-500 text-green-600" data-status="green">여유</button>
                 <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-yellow-500 text-yellow-600" data-status="yellow">보통</button>
                 <button class="status-filter px-3 py-1 rounded-full text-xs font-bold border border-red-500 text-red-600" data-status="red">대기</button>
             </div>
-            <div class="flex-1 overflow-y-auto p-2" id="facilityList"></div>
+            <div class="flex-1 p-2" id="facilityList"></div>
         </aside>
         <section class="flex-1 h-1/2 md:h-full relative">
             <div id="map" class="w-full h-full"></div>
@@ -69,11 +74,8 @@
                 stats[cat].capacity += parseInt(f['정원']) || 0;
                 stats[cat].current += parseInt(f['현원']) || 0;
             });
-
             let html = '<table class="w-full text-sm text-left border-collapse"><thead><tr class="bg-gray-100"><th class="p-2">구분</th><th class="p-2">개수</th><th class="p-2">총정원</th><th class="p-2">이용학생</th></tr></thead><tbody>';
-            for (let cat in stats) {
-                html += `<tr><td class="p-2 border-b font-bold">${cat}</td><td class="p-2 border-b">${stats[cat].count}</td><td class="p-2 border-b">${stats[cat].capacity}</td><td class="p-2 border-b">${stats[cat].current}</td></tr>`;
-            }
+            for (let cat in stats) { html += `<tr><td class="p-2 border-b font-bold">${cat}</td><td class="p-2 border-b">${stats[cat].count}</td><td class="p-2 border-b">${stats[cat].capacity}</td><td class="p-2 border-b">${stats[cat].current}</td></tr>`; }
             html += '</tbody></table>';
             document.getElementById('statusContent').innerHTML = html;
             document.getElementById('statusModal').classList.remove('hidden');
@@ -90,27 +92,26 @@
         }
 
         function initMap() {
-            const mapContainer = document.getElementById('map');
             const mapOption = { center: new kakao.maps.LatLng(37.545, 126.676), level: 7 };
-            map = new kakao.maps.Map(mapContainer, mapOption);
+            map = new kakao.maps.Map(document.getElementById('map'), mapOption);
             geocoder = new kakao.maps.services.Geocoder();
-            loadCSVData();
-        }
-
-        function loadCSVData() {
-            Papa.parse('./sbsignal.csv', {
-                download: true, header: true, skipEmptyLines: true,
-                complete: function(results) { processData(results.data); },
-                error: function(err) { console.error("CSV 로드 실패:", err); }
-            });
+            Papa.parse('./sbsignal.csv', { download: true, header: true, complete: res => processData(res.data) });
         }
 
         function processData(data) {
             allFacilities = data;
+            const cats = [...new Set(data.map(i => i['구분']))];
+            const container = document.getElementById('categoryFilters');
+            cats.forEach(c => {
+                const b = document.createElement('button');
+                b.className = 'category-btn px-3 py-1 rounded-full text-xs font-bold border border-gray-300';
+                b.innerText = c; b.dataset.category = c;
+                b.onclick = () => { document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('filter-active')); b.classList.add('filter-active'); filterData(); };
+                container.appendChild(b);
+            });
             data.forEach(item => {
-                const lat = parseFloat(item['위도']);
-                const lng = parseFloat(item['경도']);
-                if (!isNaN(lat) && !isNaN(lng)) createMarker(item, new kakao.maps.LatLng(lat, lng));
+                const lat = parseFloat(item['위도']), lng = parseFloat(item['경도']);
+                if (!isNaN(lat)) createMarker(item, new kakao.maps.LatLng(lat, lng));
             });
             renderList(data);
         }
@@ -120,10 +121,24 @@
             const content = document.createElement('div');
             content.className = `map-marker ${light.className}`;
             content.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
-            const customOverlay = new kakao.maps.CustomOverlay({ position: position, content: content, yAnchor: 0.5, zIndex: 100 });
-            customOverlay.setMap(map);
-            item.marker = customOverlay;
+            const overlay = new kakao.maps.CustomOverlay({ position, content, yAnchor: 0.5, zIndex: 100 });
+            overlay.setMap(map);
+            item.marker = overlay;
             item.position = position;
+        }
+
+        function filterData() {
+            const cat = document.querySelector('.category-btn.filter-active')?.dataset.category || 'all';
+            const status = document.querySelector('.status-filter.filter-active')?.dataset.status || 'all';
+            const term = document.getElementById('searchInput').value;
+
+            allFacilities.forEach(item => {
+                const light = getTrafficLight(item['정원'], item['현원']);
+                const matchCat = cat === 'all' || item['구분'] === cat;
+                const matchStatus = status === 'all' || light.color === status;
+                const matchTerm = item['시설명'].includes(term);
+                item.marker.setMap(matchCat && matchStatus && matchTerm ? map : null);
+            });
         }
 
         function renderList(data) {
@@ -131,14 +146,16 @@
             list.innerHTML = '';
             data.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'bg-white p-3 rounded-lg border mb-2 cursor-pointer hover:bg-gray-50';
-                card.innerHTML = `<h3 class="font-bold">${item['시설명']}</h3><p class="text-xs text-gray-500">${item['구분']}</p>`;
+                card.className = 'bg-white p-3 rounded-lg border mb-2 cursor-pointer';
+                card.innerHTML = `<h3 class="font-bold text-sm">${item['시설명']}</h3><p class="text-xs text-gray-500">${item['구분']}</p>`;
                 card.onclick = () => { map.panTo(item.position); };
                 list.appendChild(card);
             });
         }
 
-        window.onload = () => { initMap(); };
+        document.querySelectorAll('.status-filter').forEach(btn => btn.onclick = () => { btn.classList.toggle('filter-active'); filterData(); });
+        document.getElementById('searchInput').oninput = filterData;
+        window.onload = initMap;
     </script>
 </body>
 </html>
