@@ -13,7 +13,8 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .map-marker { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
+        .map-marker { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; z-index: 10; }
+        .map-marker:hover { transform: scale(1.2); }
         .marker-green { background-color: #22c55e; }
         .marker-yellow { background-color: #eab308; }
         .marker-red { background-color: #ef4444; }
@@ -22,7 +23,6 @@
     </style>
 </head>
 <body class="bg-gray-50 h-screen flex flex-col font-sans text-gray-800 overflow-hidden">
-
     <header class="bg-white shadow-sm z-20 py-3 px-6 flex flex-wrap justify-between items-center gap-3 shrink-0">
         <div class="flex items-center gap-3">
             <h1 class="text-lg font-bold text-gray-800 hidden sm:block">인천서부돌봄신호등</h1>
@@ -47,16 +47,13 @@
         </section>
     </main>
 
-    <!-- 현황 팝업 -->
     <div id="statusModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 hidden">
         <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-lg p-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-indigo-700">서부지역 돌봄 현황</h2>
                 <button onclick="document.getElementById('statusModal').classList.add('hidden')" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
-            <div id="statusContent" class="overflow-x-auto">
-                <!-- JS가 채워줌 -->
-            </div>
+            <div id="statusContent" class="overflow-x-auto"></div>
         </div>
     </div>
 
@@ -82,8 +79,64 @@
             document.getElementById('statusModal').classList.remove('hidden');
         }
 
-        // ... 기존 로직 (생략 - 위 이전 코드와 동일하게 유지) ...
-        // (필터링 로직 및 마커 생성 등 기존 기능 유지)
+        function getTrafficLight(capacity, current) {
+            const cap = parseInt(capacity) || 0;
+            const cur = parseInt(current) || 0;
+            if (cap === 0) return { status: '정보없음', color: 'gray', className: 'marker-gray' };
+            const available = cap - cur;
+            if (available >= 5) return { status: `여유 (${available}자리)`, color: 'green', className: 'marker-green' };
+            if (available > 0) return { status: `보통 (${available}자리)`, color: 'yellow', className: 'marker-yellow' };
+            return { status: '대기 (0자리)', color: 'red', className: 'marker-red' };
+        }
+
+        function initMap() {
+            const mapContainer = document.getElementById('map');
+            const mapOption = { center: new kakao.maps.LatLng(37.545, 126.676), level: 7 };
+            map = new kakao.maps.Map(mapContainer, mapOption);
+            geocoder = new kakao.maps.services.Geocoder();
+            loadCSVData();
+        }
+
+        function loadCSVData() {
+            Papa.parse('./sbsignal.csv', {
+                download: true, header: true, skipEmptyLines: true,
+                complete: function(results) { processData(results.data); },
+                error: function(err) { console.error("CSV 로드 실패:", err); }
+            });
+        }
+
+        function processData(data) {
+            allFacilities = data;
+            data.forEach(item => {
+                const lat = parseFloat(item['위도']);
+                const lng = parseFloat(item['경도']);
+                if (!isNaN(lat) && !isNaN(lng)) createMarker(item, new kakao.maps.LatLng(lat, lng));
+            });
+            renderList(data);
+        }
+
+        function createMarker(item, position) {
+            const light = getTrafficLight(item['정원'], item['현원']);
+            const content = document.createElement('div');
+            content.className = `map-marker ${light.className}`;
+            content.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
+            const customOverlay = new kakao.maps.CustomOverlay({ position: position, content: content, yAnchor: 0.5, zIndex: 100 });
+            customOverlay.setMap(map);
+            item.marker = customOverlay;
+            item.position = position;
+        }
+
+        function renderList(data) {
+            const list = document.getElementById('facilityList');
+            list.innerHTML = '';
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-3 rounded-lg border mb-2 cursor-pointer hover:bg-gray-50';
+                card.innerHTML = `<h3 class="font-bold">${item['시설명']}</h3><p class="text-xs text-gray-500">${item['구분']}</p>`;
+                card.onclick = () => { map.panTo(item.position); };
+                list.appendChild(card);
+            });
+        }
 
         window.onload = () => { initMap(); };
     </script>
