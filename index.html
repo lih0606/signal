@@ -6,10 +6,10 @@
     <title>서부돌봄신호등</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <!-- FontAwesome 추가 (아이콘 용도) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- 🚨 주의: 아래 YOUR_KAKAO_APP_KEY 부분에 발급받은 카카오맵 JavaScript 키를 넣어야 지도가 보입니다. 🚨 -->
     <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=64100a23b3cbace78036575e32cfec9a&libraries=services"></script>
+    
     <style>
         /* 커스텀 스크롤바 */
         ::-webkit-scrollbar { width: 8px; }
@@ -41,13 +41,13 @@
         .marker-gray { background-color: #94a3b8; }
 
         .infowindow-content {
-            padding: 10px 15px 10px 10px; /* 우측 닫기(X) 버튼 공간 확보를 위해 여백 추가 */
+            padding: 10px 15px 10px 10px;
             min-width: 220px;
-            width: max-content; /* 글자 길이에 맞춰 박스 너비 자동 확장 */
+            width: max-content;
             font-size: 14px;
             border-radius: 8px;
         }
-        
+
         /* 이스터에그 등장 애니메이션 */
         @keyframes bounce-short {
             0% { transform: scale(0.8); opacity: 0; }
@@ -77,7 +77,7 @@
             <div class="text-[10px] text-gray-400 md:hidden">인천서부교육지원청</div>
         </div>
 
-        <!-- 검색 및 카테고리 필터 영역 (헤더로 이동) -->
+        <!-- 검색 및 카테고리 필터 영역 -->
         <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
             <!-- 검색창 -->
             <div class="relative w-full md:w-64">
@@ -87,7 +87,9 @@
             
             <!-- 카테고리 필터 -->
             <div class="flex flex-wrap gap-1.5 justify-center" id="categoryFilters">
-                <button class="filter-btn active px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-medium transition-colors" data-category="all">전체</button>
+                <button class="filter-btn active px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-medium transition-colors" data-category="all">
+                    <span>전체</span>
+                </button>
                 <!-- 카테고리 버튼들은 JS로 자동 생성됨 -->
             </div>
         </div>
@@ -102,19 +104,22 @@
     <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
         
         <!-- 사이드바 (리스트 및 상태 필터) -->
-        <!-- 모바일 환경에서는 리스트만 숨기고 필터는 보이도록 shrink-0 적용 -->
-        <aside class="w-full md:w-96 bg-white border-r flex flex-col shrink-0 md:h-full z-10 shadow-[4px_0_10px_rgba(0,0,0,0.05)]">
+        <aside class="w-full md:w-96 bg-white border-r flex flex-col z-10 shadow-[4px_0_10px_rgba(0,0,0,0.05)] shrink-0 md:h-full">
             <!-- 상태 필터 영역 -->
-            <div class="p-3 border-b bg-gray-50/50">
-                <div class="flex justify-between gap-1 text-[11px] sm:text-xs text-gray-600 bg-white p-1 rounded-lg border shadow-sm">
-                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50" data-status="green">
+            <div class="p-3 border-b bg-gray-50/50 shrink-0">
+                <div class="flex justify-between gap-1 text-[11px] sm:text-xs text-gray-600 bg-white p-1 rounded-lg border shadow-sm items-center">
+                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50 border border-transparent" data-status="green">
                         <div class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm"></div>여유 <span class="hidden sm:inline">(5명 이상)</span>
                     </button>
-                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50" data-status="yellow">
+                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50 border border-transparent" data-status="yellow">
                         <div class="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-sm"></div>보통 <span class="hidden sm:inline">(1~4명)</span>
                     </button>
-                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50" data-status="red">
+                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50 border border-transparent" data-status="red">
                         <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm"></div>대기
+                    </button>
+                    <!-- 내 위치 버튼 (모바일에서만 표시) -->
+                    <button onclick="moveToCurrentLocation()" class="md:hidden flex items-center justify-center w-8 h-8 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors shrink-0 ml-1 shadow-sm border border-blue-100" title="내 위치로 이동">
+                        <i class="fas fa-location-crosshairs"></i>
                     </button>
                 </div>
             </div>
@@ -126,8 +131,7 @@
         </aside>
 
         <!-- 지도 영역 -->
-        <!-- 모바일 환경에서 flex-1로 남은 공간을 모두 차지하도록 설정 -->
-        <section class="flex-1 relative min-h-0">
+        <section class="flex-1 relative w-full h-full">
             <div id="map" class="w-full h-full"></div>
             
             <!-- API 키 경고 (실제 배포시 사라짐) -->
@@ -164,7 +168,7 @@
             </div>
             <div class="bg-gray-100 px-4 py-3 border-t flex justify-between items-center">
                 <label class="flex items-center text-sm text-gray-600 cursor-pointer hover:text-gray-800">
-                    <input type="checkbox" id="hideToday" class="mr-2 rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                    <input type="checkbox" id="hideToday" class="mr-2 rounded text-blue-600 focus:ring-blue-50 w-4 h-4">
                     오늘 하루 보지 않기
                 </label>
                 <button onclick="closeNotice()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-1.5 rounded text-sm font-bold transition-colors shadow-sm">
@@ -199,21 +203,10 @@
         let allFacilities = [];
         let markers = [];
         let activeOverlay = null;
-        let activeStatusFilter = 'all'; // 상태 필터용 변수 추가
-        
-        // 공지사항 로컬 스토리지 키 (매직 스트링 제거 및 상수화)
-        const NOTICE_STORAGE_KEY = 'hideNotice_seobu';
+        let activeStatusFilter = 'all'; 
 
-        // 디바운스 함수 추가 (검색 최적화)
-        function debounce(func, delay) {
-            let timeoutId;
-            return function(...args) {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => {
-                    func.apply(this, args);
-                }, delay);
-            };
-        }
+        // 상수 설정 (매직 스트링 제거)
+        const NOTICE_STORAGE_KEY = 'hideNotice_seobu_v2';
 
         // 공지사항 모달 제어 함수
         function checkNotice() {
@@ -234,6 +227,43 @@
                 localStorage.setItem(NOTICE_STORAGE_KEY, expireTime);
             }
             document.getElementById('noticeModal').classList.add('hidden');
+        }
+        
+        // 내 위치로 이동하는 함수
+        function moveToCurrentLocation() {
+            if (navigator.geolocation && map) {
+                const locationBtn = document.querySelector('button[title="내 위치로 이동"]');
+                if(locationBtn) {
+                    locationBtn.classList.add('animate-pulse');
+                    locationBtn.querySelector('i').classList.add('fa-spin');
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        const locPosition = new kakao.maps.LatLng(lat, lon);
+                        
+                        // 부드럽게 지도의 중심을 현재 위치로 이동
+                        map.panTo(locPosition);
+                        
+                        if(locationBtn) {
+                            locationBtn.classList.remove('animate-pulse');
+                            locationBtn.querySelector('i').classList.remove('fa-spin');
+                        }
+                    },
+                    function(error) {
+                        alert("위치 정보를 가져올 수 없습니다. GPS 설정이나 브라우저 권한을 확인해주세요.");
+                        if(locationBtn) {
+                            locationBtn.classList.remove('animate-pulse');
+                            locationBtn.querySelector('i').classList.remove('fa-spin');
+                        }
+                    },
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            } else {
+                alert("이 브라우저에서는 위치 정보(Geolocation)를 지원하지 않습니다.");
+            }
         }
 
         // 신호등 상태 계산 함수
@@ -259,48 +289,31 @@
                 return;
             }
 
-            // 기본 위치 (인천 서구청 인근)
-            const defaultPosition = new kakao.maps.LatLng(37.545, 126.676);
-
+            // 기본 위치 설정 (인천 서구청 인근)
+            const defaultPosition = new kakao.maps.LatLng(37.545, 126.676); 
+            
             const mapOption = {
-                center: defaultPosition,
+                center: defaultPosition, 
                 level: 7
             };
             map = new kakao.maps.Map(mapContainer, mapOption);
             
-            // 일반 지도와 스카이뷰로 지도 타입을 전환할 수 있는 지도타입 컨트롤을 생성
             const mapTypeControl = new kakao.maps.MapTypeControl();
             map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
-
-            // 줌 컨트롤을 생성
             const zoomControl = new kakao.maps.ZoomControl();
             map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
-
             geocoder = new kakao.maps.services.Geocoder();
 
-            // HTML5 Geolocation API를 사용하여 현재 위치 가져오기
+            // 현재 접속 위치로 지도 중심 이동 시도
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        // 사용자 동의 시 위도, 경도 추출
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-                        
-                        const locPosition = new kakao.maps.LatLng(lat, lon);
-                        
-                        // 지도의 중심을 현재 접속 위치로 변경
-                        map.setCenter(locPosition);
-                    },
-                    function(error) {
-                        console.warn("위치 정보를 가져오지 못했습니다. 기본 위치를 유지합니다.", error);
-                    },
-                    {
-                        enableHighAccuracy: true, // 높은 정확도 요청 (GPS 등)
-                        timeout: 5000 // 5초 내에 응답 없으면 에러 처리
-                    }
-                );
-            } else {
-                console.warn("이 브라우저에서는 Geolocation이 지원되지 않습니다.");
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const locPosition = new kakao.maps.LatLng(lat, lon);
+                    map.setCenter(locPosition);
+                }, function(error) {
+                    console.log("위치 정보를 가져올 수 없어 기본 좌표로 시작합니다.", error);
+                });
             }
 
             loadCSVData();
@@ -308,7 +321,6 @@
 
         // CSV 파일 로드 및 파싱 (sbsignal.csv)
         function loadCSVData() {
-            // Vercel 등에 배포했을 때 같은 경로에 있는 sbsignal.csv를 읽어옵니다.
             Papa.parse('./sbsignal.csv', {
                 download: true,
                 header: true,
@@ -318,14 +330,12 @@
                 },
                 error: function(err) {
                     console.error("CSV 로드 실패:", err);
-                    // 개발 환경이나 미리보기에서 CSV를 못 찾을 때를 위한 샘플 데이터 (화면 확인용)
                     document.getElementById('facilityList').innerHTML = `
                         <div class="text-center py-10 text-red-500">
                             <p>sbsignal.csv 파일을 찾을 수 없습니다.</p>
                             <p class="text-sm mt-2 text-gray-500">GitHub에 index.html과 함께<br>동일한 위치에 업로드 해주세요.</p>
                         </div>`;
                     
-                    // 데모 데이터 (미리보기 용도)
                     const demoData = [
                         {"구분": "초등돌봄교실", "시설명": "인천가림초등학교", "주소": "장고개로293번길 29", "문의처": "032-571-6230", "위도": "37.49058351", "경도": "126.6810501", "정원": "0", "현원": "0"},
                         {"구분": "지역아동센터", "시설명": "성문 지역아동센터", "주소": "서달로 126", "문의처": "032-579-5545", "위도": "", "경도": "", "정원": "29", "현원": "20"},
@@ -341,21 +351,17 @@
         async function processData(data) {
             allFacilities = data;
             
-            // 고유 카테고리(구분) 추출
             const categories = [...new Set(data.map(item => item['구분']).filter(Boolean))];
             renderCategoryFilters(categories);
 
-            // 마커 생성 로직
             for (let i = 0; i < data.length; i++) {
                 const item = data[i];
                 const lat = parseFloat(item['위도']);
                 const lng = parseFloat(item['경도']);
 
-                // 위도/경도가 CSV에 있으면 바로 사용
                 if (!isNaN(lat) && !isNaN(lng)) {
                     createMarker(item, new kakao.maps.LatLng(lat, lng));
                 } 
-                // 없으면 주소로 좌표 변환 (비동기)
                 else if (item['주소']) {
                     await geocodeAddress(item);
                 }
@@ -370,14 +376,12 @@
                 geocoder.addressSearch(item['주소'], function(result, status) {
                     if (status === kakao.maps.services.Status.OK) {
                         const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                        // 변환된 좌표를 객체에 저장해둠
                         item['위도'] = result[0].y;
                         item['경도'] = result[0].x;
                         createMarker(item, coords);
                     } else {
                         console.warn('주소 변환 실패:', item['주소']);
                     }
-                    // API 호출 속도 조절을 위해 약간의 딜레이
                     setTimeout(resolve, 50); 
                 });
             });
@@ -387,19 +391,12 @@
         function createMarker(item, position) {
             const light = getTrafficLight(item['정원'], item['현원']);
             
-            // 시설 구분에 따른 아이콘 선택
-            let iconHtml = '<i class="fas fa-map-marker-alt"></i>'; // 기본 마커
-            if (item['구분'] === '초등돌봄교실') {
-                iconHtml = '<i class="fas fa-school"></i>'; // 학교
-            } else if (item['구분'] === '다함께돌봄센터') {
-                iconHtml = '<i class="fas fa-building"></i>'; // 아파트/빌딩
-            } else if (item['구분'] === '청소년방과후아카데미') {
-                iconHtml = '<i class="fas fa-star"></i>'; // 별
-            } else if (item['구분'] === '지역아동센터') {
-                iconHtml = '<i class="fas fa-home"></i>'; // 집
-            }
+            let iconHtml = '<i class="fas fa-map-marker-alt"></i>';
+            if (item['구분'] === '초등돌봄교실') iconHtml = '<i class="fas fa-school"></i>';
+            else if (item['구분'] === '다함께돌봄센터') iconHtml = '<i class="fas fa-building"></i>';
+            else if (item['구분'] === '청소년방과후아카데미') iconHtml = '<i class="fas fa-star"></i>';
+            else if (item['구분'] === '지역아동센터') iconHtml = '<i class="fas fa-home"></i>';
             
-            // HTML 커스텀 마커 (원형 배경 안에 아이콘 배치)
             const content = document.createElement('div');
             content.className = `map-marker ${light.className}`;
             content.title = item['시설명'];
@@ -413,7 +410,6 @@
 
             customOverlay.setMap(map);
 
-            // 인포윈도우 컨텐츠
             const infowindowContent = `
                 <div class="infowindow-content">
                     <div class="font-bold text-lg mb-1 text-blue-700 whitespace-nowrap pr-4">${item['시설명']}</div>
@@ -431,19 +427,17 @@
             const infowindow = new kakao.maps.InfoWindow({
                 content: infowindowContent,
                 removable: true,
-                zIndex: 100 // ★ 정보창이 항상 마커들보다 위에 보이도록 zIndex 추가
+                zIndex: 100 
             });
 
-            // 마커 클릭 이벤트
             content.onclick = function() {
                 if(activeOverlay) activeOverlay.close();
-                infowindow.setPosition(position); // 커스텀 오버레이 대신 위치를 직접 지정
-                infowindow.open(map); // 두 번째 인자(customOverlay) 제거
+                infowindow.setPosition(position); 
+                infowindow.open(map); 
                 activeOverlay = infowindow;
                 map.panTo(position);
             };
 
-            // 객체에 마커와 정보 저장 (필터링 시 사용)
             item.marker = customOverlay;
             item.infowindow = infowindow;
             item.position = position;
@@ -452,51 +446,41 @@
         // 카테고리 필터 버튼 생성
         function renderCategoryFilters(categories) {
             const filterContainer = document.getElementById('categoryFilters');
-            
-            // 모바일 환경을 위한 카테고리 축약어 매핑
-            const shortNames = {
-                '초등돌봄교실': '초등',
-                '지역아동센터': '지역',
-                '다함께돌봄센터': '다돌',
-                '청소년방과후아카데미': '청소년'
-            };
-
             categories.forEach(cat => {
-                const shortName = shortNames[cat] || cat;
                 const btn = document.createElement('button');
-                // 버튼 내부 텍스트 줄바꿈 방지를 위해 whitespace-nowrap 추가
-                btn.className = 'filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 text-xs font-medium transition-colors whitespace-nowrap';
+                btn.className = 'filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 text-xs font-medium transition-colors flex items-center justify-center';
                 btn.dataset.category = cat;
-                
-                // 모바일(md 미만)에서는 축약어, 데스크탑(md 이상)에서는 전체 이름 표시
-            btn.innerHTML = `
-                <span class="inline md:hidden">${shortName}</span>
-                <span class="hidden md:inline">${cat}</span>
-            `;
-            
-            filterContainer.appendChild(btn);
-        });
 
-        // 필터 버튼 클릭 이벤트
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                // 이벤트 타겟을 버튼 자신으로 고정 (e.currentTarget)
-                const targetBtn = e.currentTarget;
+                let shortName = cat;
+                if (cat === '초등돌봄교실') shortName = '초등';
+                else if (cat === '지역아동센터') shortName = '지역';
+                else if (cat === '다함께돌봄센터') shortName = '다돌';
+                else if (cat === '청소년방과후아카데미') shortName = '청소년';
 
-                // 버튼 스타일 변경
-                document.querySelectorAll('.filter-btn').forEach(b => {
-                    b.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
-                    b.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
-                });
-                targetBtn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
-                targetBtn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
-
-                filterAndRender();
+                btn.innerHTML = `
+                    <span class="md:hidden">${shortName}</span>
+                    <span class="hidden md:inline">${cat}</span>
+                `;
+                filterContainer.appendChild(btn);
             });
-        });
-    }
 
-    // 리스트 랜더링
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const targetBtn = e.currentTarget; 
+
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
+                        b.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
+                    });
+                    targetBtn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
+                    targetBtn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
+
+                    filterAndRender();
+                });
+            });
+        }
+
+        // 리스트 랜더링
         function renderList(data) {
             const listContainer = document.getElementById('facilityList');
             listContainer.innerHTML = '';
@@ -512,7 +496,6 @@
                                   light.color === 'yellow' ? 'text-yellow-600' : 
                                   light.color === 'red' ? 'text-red-600' : 'text-gray-500';
 
-                // 시설 구분에 따른 아이콘 선택 (리스트용)
                 let iconHtml = '<i class="fas fa-map-marker-alt"></i>';
                 if (item['구분'] === '초등돌봄교실') iconHtml = '<i class="fas fa-school"></i>';
                 else if (item['구분'] === '다함께돌봄센터') iconHtml = '<i class="fas fa-building"></i>';
@@ -524,7 +507,6 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
                         <div class="flex items-center">
-                            <!-- 아이콘 추가 -->
                             <div class="w-8 h-8 rounded-full flex items-center justify-center text-white mr-3 shadow-sm ${light.className}">
                                 ${iconHtml}
                             </div>
@@ -542,13 +524,11 @@
                     <p class="text-xs text-gray-500 mt-1 ml-11">📞 ${item['문의처']}</p>
                 `;
 
-                // 리스트 클릭 시 지도 이동 및 마커 클릭 연동
                 card.onclick = () => {
                     if (item.position && item.marker) {
                         map.panTo(item.position);
-                        item.marker.getContent().click(); // 오버레이 클릭 트리거
+                        item.marker.getContent().click(); 
                         
-                        // 모바일 화면일 경우 지도 쪽으로 스크롤
                         if(window.innerWidth < 768) {
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
@@ -559,13 +539,10 @@
             });
         }
 
-        // 🥚 이스터에그 처리 함수 🥚
+        // 이스터에그 처리 함수
         function showEasterEgg() {
             const today = new Date();
-            // 목표일: 2027년 3월 1일 (자정 기준) - 자바스크립트 Date에서 월은 0부터 시작하므로 2가 3월입니다.
             const targetDate = new Date(2027, 2, 1); 
-            
-            // 시간 차이를 밀리초 단위로 계산 후 일(day) 단위로 변환
             const diffTime = targetDate.getTime() - today.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
@@ -581,11 +558,9 @@
         function filterAndRender() {
             const rawSearchTerm = document.getElementById('searchInput').value;
             
-            // 이스터에그 발동 조건: 띄어쓰기 다 무시하고 '일하기싫어'인지 확인
             if (rawSearchTerm.replace(/\s/g, '') === '일하기싫어') {
                 showEasterEgg();
-                document.getElementById('searchInput').value = ''; // 입력창 초기화
-                // 빈 문자열이 되었으므로 전체 리스트가 다시 보이게 됨
+                document.getElementById('searchInput').value = ''; 
             }
 
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -602,7 +577,6 @@
                 
                 const isMatch = matchSearch && matchCategory && matchStatus;
 
-                // 지도 마커 보이기/숨기기
                 if (item.marker) {
                     if (isMatch) item.marker.setMap(map);
                     else item.marker.setMap(null);
@@ -611,57 +585,52 @@
                 return isMatch;
             });
 
-            // 열려있는 인포윈도우 닫기
             if(activeOverlay) activeOverlay.close();
-
             renderList(filtered);
         }
 
-        // 검색창 이벤트 (디바운스 적용)
-        const debouncedFilterAndRender = debounce(filterAndRender, 300);
-        document.getElementById('searchInput').addEventListener('input', debouncedFilterAndRender);
+        // 검색창 디바운싱 이벤트 (최적화)
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterAndRender();
+            }, 300); // 0.3초 대기 후 실행
+        });
 
+        // 상태 필터 버튼 클릭 이벤트 (색상 강조 적용)
         document.querySelectorAll('.status-filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const targetBtn = e.currentTarget;
                 const status = targetBtn.dataset.status;
 
-                // 상태별로 다르게 적용될 강조 스타일 클래스 정의
-                const highlightClasses = {
-                    green: ['bg-green-100', 'text-green-800', 'font-bold', 'shadow-inner'],
-                    yellow: ['bg-yellow-100', 'text-yellow-800', 'font-bold', 'shadow-inner'],
-                    red: ['bg-red-100', 'text-red-800', 'font-bold', 'shadow-inner']
-                };
+                // 기존에 적용된 강조 스타일(색상, 테두리 등) 모두 제거
+                document.querySelectorAll('.status-filter-btn').forEach(b => {
+                    b.classList.remove('bg-green-100', 'text-green-800', 'border-green-300', 'font-bold',
+                                       'bg-yellow-100', 'text-yellow-800', 'border-yellow-300',
+                                       'bg-red-100', 'text-red-800', 'border-red-300', 'bg-gray-200');
+                });
 
-                // 모든 버튼의 선택 스타일 초기화 함수
-                const resetStyles = () => {
-                    document.querySelectorAll('.status-filter-btn').forEach(b => {
-                        // 기존 버전 클래스 제거 (혹시 남아있을 경우 대비)
-                        b.classList.remove('bg-gray-200', 'font-bold', 'shadow-inner'); 
-                        // 새로운 강조 클래스 제거
-                        const bStatus = b.dataset.status;
-                        if (highlightClasses[bStatus]) {
-                            b.classList.remove(...highlightClasses[bStatus]);
-                        }
-                    });
-                };
-
-                // 이미 선택된 상태 버튼을 다시 누르면 선택 해제 (전체 보기)
                 if (activeStatusFilter === status) {
+                    // 이미 선택된 버튼을 다시 누르면 선택 해제 (전체 보기)
                     activeStatusFilter = 'all';
-                    resetStyles();
                 } else {
-                    resetStyles();
-                    // 새로운 상태 적용 및 색상별 맞춤 강조 스타일 추가
+                    // 새로운 상태 적용 및 상태별 색상 강조 스타일 추가
                     activeStatusFilter = status;
-                    targetBtn.classList.add(...highlightClasses[status]);
+                    if (status === 'green') {
+                        targetBtn.classList.add('bg-green-100', 'text-green-800', 'border-green-300', 'font-bold');
+                    } else if (status === 'yellow') {
+                        targetBtn.classList.add('bg-yellow-100', 'text-yellow-800', 'border-yellow-300', 'font-bold');
+                    } else if (status === 'red') {
+                        targetBtn.classList.add('bg-red-100', 'text-red-800', 'border-red-300', 'font-bold');
+                    }
                 }
 
-                filterAndRender(); // 필터 즉시 적용
+                filterAndRender(); 
             });
         });
 
-        // 페이지 로드 완료 시 맵 초기화 및 공지사항 확인
+        // 페이지 로드 완료 시 초기화
         window.onload = function() {
             initMap();
             checkNotice();
