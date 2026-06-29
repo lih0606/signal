@@ -598,18 +598,35 @@
                 const targetBtn = e.currentTarget;
                 const status = targetBtn.dataset.status;
 
+                // 상태별로 다르게 적용될 강조 스타일 클래스 정의
+                const highlightClasses = {
+                    green: ['bg-green-100', 'text-green-800', 'font-bold', 'shadow-inner'],
+                    yellow: ['bg-yellow-100', 'text-yellow-800', 'font-bold', 'shadow-inner'],
+                    red: ['bg-red-100', 'text-red-800', 'font-bold', 'shadow-inner']
+                };
+
+                // 모든 버튼의 선택 스타일 초기화 함수
+                const resetStyles = () => {
+                    document.querySelectorAll('.status-filter-btn').forEach(b => {
+                        // 기존 버전 클래스 제거 (혹시 남아있을 경우 대비)
+                        b.classList.remove('bg-gray-200', 'font-bold', 'shadow-inner'); 
+                        // 새로운 강조 클래스 제거
+                        const bStatus = b.dataset.status;
+                        if (highlightClasses[bStatus]) {
+                            b.classList.remove(...highlightClasses[bStatus]);
+                        }
+                    });
+                };
+
                 // 이미 선택된 상태 버튼을 다시 누르면 선택 해제 (전체 보기)
                 if (activeStatusFilter === status) {
                     activeStatusFilter = 'all';
-                    targetBtn.classList.remove('bg-gray-200', 'font-bold', 'shadow-inner');
+                    resetStyles();
                 } else {
-                    // 기존 선택된 버튼들의 스타일 초기화
-                    document.querySelectorAll('.status-filter-btn').forEach(b => {
-                        b.classList.remove('bg-gray-200', 'font-bold', 'shadow-inner');
-                    });
-                    // 새로운 상태 적용 및 클릭한 버튼 스타일 강조
+                    resetStyles();
+                    // 새로운 상태 적용 및 색상별 맞춤 강조 스타일 추가
                     activeStatusFilter = status;
-                    targetBtn.classList.add('bg-gray-200', 'font-bold', 'shadow-inner');
+                    targetBtn.classList.add(...highlightClasses[status]);
                 }
 
                 filterAndRender(); // 필터 즉시 적용
