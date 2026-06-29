@@ -424,11 +424,28 @@
         // 카테고리 필터 버튼 생성
         function renderCategoryFilters(categories) {
             const filterContainer = document.getElementById('categoryFilters');
+            
+            // 모바일 환경을 위한 카테고리 축약어 매핑
+            const shortNames = {
+                '초등돌봄교실': '초등',
+                '지역아동센터': '지역',
+                '다함께돌봄센터': '다돌',
+                '청소년방과후아카데미': '청소년'
+            };
+
             categories.forEach(cat => {
+                const shortName = shortNames[cat] || cat;
                 const btn = document.createElement('button');
-                btn.className = 'filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 text-xs font-medium transition-colors';
+                // 버튼 내부 텍스트 줄바꿈 방지를 위해 whitespace-nowrap 추가
+                btn.className = 'filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 text-xs font-medium transition-colors whitespace-nowrap';
                 btn.dataset.category = cat;
-                btn.innerText = cat;
+                
+                // 모바일(md 미만)에서는 축약어, 데스크탑(md 이상)에서는 전체 이름 표시
+                btn.innerHTML = `
+                    <span class="inline md:hidden">${shortName}</span>
+                    <span class="hidden md:inline">${cat}</span>
+                `;
+                
                 filterContainer.appendChild(btn);
             });
 
