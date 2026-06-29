@@ -6,7 +6,6 @@
     <title>인천서부돌봄신호등</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <!-- FontAwesome 추가 (아이콘 용도) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- 🚨 주의: 아래 YOUR_KAKAO_APP_KEY 부분에 발급받은 카카오맵 JavaScript 키를 넣어야 지도가 보입니다. 🚨 -->
     <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=64100a23b3cbace78036575e32cfec9a&libraries=services"></script>
@@ -46,6 +45,16 @@
             width: max-content; /* 글자 길이에 맞춰 박스 너비 자동 확장 */
             font-size: 14px;
             border-radius: 8px;
+        }
+
+        /* 이스터에그 등장 애니메이션 */
+        @keyframes bounce-short {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-bounce-short {
+            animation: bounce-short 0.3s ease-out forwards;
         }
     </style>
 </head>
@@ -92,7 +101,8 @@
     <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
         
         <!-- 사이드바 (리스트 및 상태 필터) -->
-        <aside class="w-full md:w-96 bg-white border-r flex flex-col h-1/2 md:h-full z-10 shadow-[4px_0_10px_rgba(0,0,0,0.05)]">
+        <!-- 모바일 환경에서는 시설 리스트가 보이지 않도록 hidden md:flex 적용, 높이는 h-full로 고정 -->
+        <aside class="hidden md:flex md:w-96 w-full bg-white border-r flex-col h-full z-10 shadow-[4px_0_10px_rgba(0,0,0,0.05)]">
             <!-- 상태 필터 영역 -->
             <div class="p-3 border-b shrink-0 bg-gray-50/50">
                 <div class="flex justify-between gap-1 text-[11px] sm:text-xs text-gray-600 bg-white p-1 rounded-lg border shadow-sm">
@@ -115,7 +125,8 @@
         </aside>
 
         <!-- 지도 영역 -->
-        <section class="flex-1 h-1/2 md:h-full relative">
+        <!-- 사이드바 숨김에 맞춰 모바일에서도 전체 높이(h-full)를 채우도록 변경 -->
+        <section class="flex-1 h-full relative">
             <div id="map" class="w-full h-full"></div>
             
             <!-- API 키 경고 (실제 배포시 사라짐) -->
@@ -180,30 +191,29 @@
         </div>
     </div>
 
-    <style>
-        /* 이스터에그 등장 애니메이션 */
-        @keyframes bounce-short {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .animate-bounce-short {
-            animation: bounce-short 0.3s ease-out forwards;
-        }
-    </style>
-
     <script>
-        // 전역 변수 설정
+        // 전역 변수 및 상수 설정
+        const NOTICE_STORAGE_KEY = 'hideNotice_seobu'; // 매직 스트링 상수화
         let map;
         let geocoder;
         let allFacilities = [];
         let markers = [];
         let activeOverlay = null;
-        let activeStatusFilter = 'all'; // 상태 필터용 변수 추가
+        let activeStatusFilter = 'all'; 
+
+        // 디바운스 함수 (검색 최적화용)
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
 
         // 공지사항 모달 제어 함수
         function checkNotice() {
-            const hideNotice = localStorage.getItem('hideNotice_seobu');
+            // 상수 키 사용
+            const hideNotice = localStorage.getItem(NOTICE_STORAGE_KEY);
             const now = new Date().getTime();
             
             // 저장된 값이 없거나, 저장된 만료 시간(24시간)이 지났으면 팝업 표시
@@ -217,7 +227,7 @@
             if (hideToday) {
                 // 현재 시간부터 24시간(86400000ms) 동안 팝업 숨김 설정
                 const expireTime = new Date().getTime() + 24 * 60 * 60 * 1000;
-                localStorage.setItem('hideNotice_seobu', expireTime);
+                localStorage.setItem(NOTICE_STORAGE_KEY, expireTime); // 상수 키 사용
             }
             document.getElementById('noticeModal').classList.add('hidden');
         }
@@ -555,8 +565,8 @@
             renderList(filtered);
         }
 
-        // 검색창 이벤트
-        document.getElementById('searchInput').addEventListener('input', filterAndRender);
+        // 검색창 이벤트 (디바운스 적용하여 0.3초 대기 후 실행)
+        document.getElementById('searchInput').addEventListener('input', debounce(filterAndRender, 300));
 
         document.querySelectorAll('.status-filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
