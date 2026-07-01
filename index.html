@@ -94,10 +94,10 @@
             </div>
         </div>
         
-        <!-- 데스크탑 부제목 -->
-        <div class="text-xs text-gray-500 hidden lg:block whitespace-nowrap">
-            인천서부교육지원청 관내 돌봄 시설 현황
-        </div>
+        <!-- 데스크탑 부제목 (대시보드 버튼으로 변경) -->
+        <button onclick="openDashboard()" class="text-xs text-gray-500 hidden lg:flex items-center gap-1.5 whitespace-nowrap cursor-pointer hover:text-indigo-600 transition-colors py-1.5 px-2 rounded-md hover:bg-gray-100 border border-transparent hover:border-gray-200">
+            <i class="fas fa-chart-pie text-indigo-500"></i> 인천서부교육지원청 관내 돌봄 시설 현황
+        </button>
     </header>
 
     <!-- 메인 컨텐츠 구역 -->
@@ -191,6 +191,123 @@
                 </div>
                 <button onclick="closeEasterEgg()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm">
                     확인
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📊 대시보드 모달 -->
+    <div id="dashboardModal" class="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 hidden backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-11/12 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <!-- 헤더 -->
+            <div class="bg-indigo-600 text-white px-5 py-4 flex justify-between items-center shrink-0">
+                <h2 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fas fa-chart-line"></i> 서부 관내 돌봄 시설 종합 현황
+                </h2>
+                <button onclick="closeDashboard()" class="text-indigo-100 hover:text-white transition-colors focus:outline-none">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- 콘텐츠 영역 (스크롤 가능) -->
+            <div class="p-5 md:p-6 overflow-y-auto bg-gray-50 flex-1">
+                <!-- 주요 지표 (요약) -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                        <span class="text-xs text-gray-500 mb-1">전체 시설 수</span>
+                        <span class="text-2xl font-bold text-gray-800" id="dashTotalCount">0</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                        <span class="text-xs text-gray-500 mb-1">총 정원</span>
+                        <span class="text-2xl font-bold text-indigo-600" id="dashTotalCap">0</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                        <span class="text-xs text-gray-500 mb-1">현재 이용(현원)</span>
+                        <span class="text-2xl font-bold text-blue-600" id="dashTotalCur">0</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                        <span class="text-xs text-gray-500 mb-1">잔여 자리</span>
+                        <span class="text-2xl font-bold text-green-600" id="dashTotalAvail">0</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 신호등 상태 현황 (가로 바 차트 형태) -->
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+                        <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-traffic-light text-gray-400"></i> 신호등 상태 분포
+                        </h3>
+                        <div class="space-y-4">
+                            <!-- 여유 -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-green-700 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div> 여유 (5명이상)</span>
+                                    <span class="font-bold text-gray-700" id="dashStatusGreen">0개</span>
+                                </div>
+                                <div class="w-full bg-gray-100 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full transition-all duration-1000 ease-out" id="dashBarGreen" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <!-- 보통 -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-yellow-700 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-yellow-400"></div> 보통 (1~4명)</span>
+                                    <span class="font-bold text-gray-700" id="dashStatusYellow">0개</span>
+                                </div>
+                                <div class="w-full bg-gray-100 rounded-full h-2">
+                                    <div class="bg-yellow-400 h-2 rounded-full transition-all duration-1000 ease-out" id="dashBarYellow" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <!-- 대기 -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-red-700 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div> 대기 (0자리)</span>
+                                    <span class="font-bold text-gray-700" id="dashStatusRed">0개</span>
+                                </div>
+                                <div class="w-full bg-gray-100 rounded-full h-2">
+                                    <div class="bg-red-500 h-2 rounded-full transition-all duration-1000 ease-out" id="dashBarRed" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <!-- 정보없음 -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-gray-500 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-gray-400"></div> 정보없음</span>
+                                    <span class="font-bold text-gray-700" id="dashStatusGray">0개</span>
+                                </div>
+                                <div class="w-full bg-gray-100 rounded-full h-2">
+                                    <div class="bg-gray-400 h-2 rounded-full transition-all duration-1000 ease-out" id="dashBarGray" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 카테고리별 통계 테이블 -->
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+                        <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-list-ul text-gray-400"></i> 시설 유형별 현황
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-y">
+                                    <tr>
+                                        <th class="px-3 py-2">유형</th>
+                                        <th class="px-3 py-2 text-center">시설 수</th>
+                                        <th class="px-3 py-2 text-center">총 정원</th>
+                                        <th class="px-3 py-2 text-center">총 현원</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashCategoryTable" class="divide-y divide-gray-100">
+                                    <!-- JS로 채워짐 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 푸터 -->
+            <div class="bg-white px-5 py-3 border-t flex justify-end shrink-0">
+                <button onclick="closeDashboard()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2 rounded-lg text-sm font-bold transition-colors">
+                    닫기
                 </button>
             </div>
         </div>
@@ -625,6 +742,113 @@
                 filterAndRender(); 
             });
         });
+
+        // 📊 대시보드 관련 함수
+        function openDashboard() {
+            if (!allFacilities || allFacilities.length === 0) {
+                alert("아직 데이터를 불러오고 있습니다. 잠시 후 다시 시도해주세요.");
+                return;
+            }
+            renderDashboardStats();
+            document.getElementById('dashboardModal').classList.remove('hidden');
+        }
+
+        function closeDashboard() {
+            document.getElementById('dashboardModal').classList.add('hidden');
+            
+            // 닫을 때 바 차트 애니메이션 초기화
+            ['green', 'yellow', 'red', 'gray'].forEach(color => {
+                document.getElementById(`dashBar${color.charAt(0).toUpperCase() + color.slice(1)}`).style.width = '0%';
+            });
+        }
+
+        function renderDashboardStats() {
+            let totalFacilities = 0;
+            let totalCap = 0;
+            let totalCur = 0;
+
+            let statusCount = { green: 0, yellow: 0, red: 0, gray: 0 };
+            let categoryStats = {};
+
+            // 전체 데이터 순회하며 통계 수집
+            allFacilities.forEach(item => {
+                if (!item['구분']) return; // 유효하지 않은 행 무시
+                
+                totalFacilities++;
+                const cap = parseInt(item['정원']) || 0;
+                const cur = parseInt(item['현원']) || 0;
+                
+                totalCap += cap;
+                totalCur += cur;
+
+                // 신호등 상태 카운트
+                const light = getTrafficLight(cap, cur);
+                if (statusCount[light.color] !== undefined) {
+                    statusCount[light.color]++;
+                }
+
+                // 카테고리별 누적 카운트
+                if (!categoryStats[item['구분']]) {
+                    categoryStats[item['구분']] = { count: 0, cap: 0, cur: 0 };
+                }
+                categoryStats[item['구분']].count++;
+                categoryStats[item['구분']].cap += cap;
+                categoryStats[item['구분']].cur += cur;
+            });
+
+            // 상단 주요 지표 업데이트
+            document.getElementById('dashTotalCount').innerText = totalFacilities + '개';
+            document.getElementById('dashTotalCap').innerText = totalCap.toLocaleString() + '명';
+            document.getElementById('dashTotalCur').innerText = totalCur.toLocaleString() + '명';
+            
+            const totalAvail = totalCap - totalCur;
+            document.getElementById('dashTotalAvail').innerText = Math.max(0, totalAvail).toLocaleString() + '명';
+
+            // 신호등 상태 바 차트 및 텍스트 업데이트 헬퍼 함수
+            const setDashboardBar = (color, count) => {
+                const percent = totalFacilities > 0 ? (count / totalFacilities) * 100 : 0;
+                const capColor = color.charAt(0).toUpperCase() + color.slice(1);
+                
+                document.getElementById(`dashStatus${capColor}`).innerText = `${count}개 (${percent.toFixed(1)}%)`;
+                
+                // 모달 렌더링 직후 애니메이션 트리거를 위해 약간의 지연
+                setTimeout(() => { 
+                    document.getElementById(`dashBar${capColor}`).style.width = `${percent}%`;
+                }, 50);
+            };
+
+            setDashboardBar('green', statusCount.green);
+            setDashboardBar('yellow', statusCount.yellow);
+            setDashboardBar('red', statusCount.red);
+            setDashboardBar('gray', statusCount.gray);
+
+            // 유형별 테이블 DOM 생성
+            const tbody = document.getElementById('dashCategoryTable');
+            tbody.innerHTML = '';
+            
+            Object.entries(categoryStats).forEach(([cat, stats]) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50/50 transition-colors";
+                
+                let iconHtml = '<i class="fas fa-map-marker-alt text-gray-400"></i>';
+                if (cat === '초등돌봄교실') iconHtml = '<i class="fas fa-school text-blue-500 w-4 text-center"></i>';
+                else if (cat === '다함께돌봄센터') iconHtml = '<i class="fas fa-building text-indigo-500 w-4 text-center"></i>';
+                else if (cat === '청소년방과후아카데미') iconHtml = '<i class="fas fa-star text-yellow-500 w-4 text-center"></i>';
+                else if (cat === '지역아동센터') iconHtml = '<i class="fas fa-home text-green-500 w-4 text-center"></i>';
+
+                tr.innerHTML = `
+                    <td class="px-3 py-3 font-medium text-gray-700 flex items-center gap-2">
+                        ${iconHtml} ${cat}
+                    </td>
+                    <td class="px-3 py-3 text-center text-gray-600">${stats.count}</td>
+                    <td class="px-3 py-3 text-center text-gray-600">${stats.cap.toLocaleString()}</td>
+                    <td class="px-3 py-3 text-center font-bold ${stats.cur >= stats.cap && stats.cap > 0 ? 'text-red-500' : 'text-blue-600'}">
+                        ${stats.cur.toLocaleString()}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
 
         // 페이지 로드 완료 시 초기화
         window.onload = function() {
