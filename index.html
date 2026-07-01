@@ -290,10 +290,10 @@
                             <table class="w-full text-sm text-left">
                                 <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-y">
                                     <tr>
-                                        <th class="px-3 py-2">유형</th>
-                                        <th class="px-3 py-2 text-center">시설 수</th>
-                                        <th class="px-3 py-2 text-center">총 정원</th>
-                                        <th class="px-3 py-2 text-center">총 현원</th>
+                                        <th class="px-3 py-2 whitespace-nowrap">유형</th>
+                                        <th class="px-3 py-2 text-center whitespace-nowrap">시설 수</th>
+                                        <th class="px-3 py-2 text-center whitespace-nowrap">총 정원</th>
+                                        <th class="px-3 py-2 text-center whitespace-nowrap">총 현원</th>
                                     </tr>
                                 </thead>
                                 <tbody id="dashCategoryTable" class="divide-y divide-gray-100">
@@ -837,7 +837,7 @@
                 else if (cat === '지역아동센터') iconHtml = '<i class="fas fa-home text-green-500 w-4 text-center"></i>';
 
                 tr.innerHTML = `
-                    <td class="px-3 py-3 font-medium text-gray-700 flex items-center gap-2">
+                    <td class="px-3 py-3 font-medium text-gray-700 flex items-center gap-2 whitespace-nowrap">
                         ${iconHtml} ${cat}
                     </td>
                     <td class="px-3 py-3 text-center text-gray-600">${stats.count}</td>
