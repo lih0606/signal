@@ -750,14 +750,20 @@
             calculateStatusCounts(baseFiltered);
             updateFilterCounts();
 
+            // 💡 수정: 모든 시설의 마커를 먼저 숨긴 후 조건에 맞는 마커만 표시하도록 수정
+            allFacilities.forEach(item => {
+                if (item.marker) {
+                    item.marker.setMap(null);
+                }
+            });
+
             // 💡 수정: 상태 필터 적용하여 최종 리스트 생성 및 마커 표시
             const finalFiltered = baseFiltered.filter(item => {
                 const light = getTrafficLight(item['정원'], item['현원']);
                 const matchStatus = activeStatusFilter === 'all' || light.color === activeStatusFilter;
                 
-                if (item.marker) {
-                    if (matchStatus) item.marker.setMap(map);
-                    else item.marker.setMap(null);
+                if (matchStatus && item.marker) {
+                    item.marker.setMap(map);
                 }
 
                 return matchStatus;
