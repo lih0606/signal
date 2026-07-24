@@ -90,7 +90,7 @@
             <!-- 카테고리 필터 -->
             <div class="flex flex-wrap gap-1.5 justify-center" id="categoryFilters">
                 <button class="filter-btn active px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-medium transition-colors" data-category="all">
-                    <span>전체</span>
+                    <span>전체 <span id="countAll" class="text-[10px] opacity-75 font-normal"></span></span>
                 </button>
                 <!-- 카테고리 버튼들은 JS로 자동 생성됨 -->
             </div>
@@ -614,6 +614,11 @@
         // 카테고리 필터 버튼 생성
         function renderCategoryFilters(categories) {
             const filterContainer = document.getElementById('categoryFilters');
+            
+            // '전체' 카운트 업데이트
+            const countAll = document.getElementById('countAll');
+            if (countAll) countAll.innerText = `(${allFacilities.length})`;
+
             categories.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = 'filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 text-xs font-medium transition-colors flex items-center justify-center';
@@ -621,10 +626,13 @@
 
                 // 💡 개선: 객체 매핑을 통한 축약어 변환
                 const shortName = CATEGORY_SHORT_NAMES[cat] || cat;
+                
+                // 💡 추가: 해당 카테고리에 속하는 시설 개수 계산
+                const catCount = allFacilities.filter(item => item['구분'] === cat).length;
 
                 btn.innerHTML = `
-                    <span class="md:hidden">${shortName}</span>
-                    <span class="hidden md:inline">${cat}</span>
+                    <span class="md:hidden">${shortName} <span class="text-[10px] opacity-75 font-normal">(${catCount})</span></span>
+                    <span class="hidden md:inline">${cat} <span class="text-[10px] opacity-75 font-normal">(${catCount})</span></span>
                 `;
                 filterContainer.appendChild(btn);
             });
