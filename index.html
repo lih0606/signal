@@ -66,7 +66,8 @@
         <!-- 로고 영역 -->
         <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
             <div class="flex items-center gap-3">
-                <div class="flex gap-1">
+                <!-- 접근성 개선: 장식용 색상 원에 aria-hidden 추가 -->
+                <div class="flex gap-1" aria-hidden="true">
                     <div class="w-3 h-3 rounded-full bg-red-500"></div>
                     <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
                     <div class="w-3 h-3 rounded-full bg-green-500"></div>
@@ -81,8 +82,9 @@
         <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
             <!-- 검색창 -->
             <div class="relative w-full md:w-64">
-                <input type="text" id="searchInput" placeholder="시설명 또는 주소 검색" class="w-full pl-10 pr-4 py-1.5 border rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 transition-shadow">
-                <i class="fas fa-search absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                <!-- 접근성 개선: 입력 필드에 aria-label 추가 -->
+                <input type="text" id="searchInput" aria-label="돌봄 시설 검색" placeholder="시설명 또는 주소 검색" class="w-full pl-10 pr-4 py-1.5 border rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50 transition-shadow">
+                <i class="fas fa-search absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
             </div>
             
             <!-- 카테고리 필터 -->
@@ -96,7 +98,7 @@
         
         <!-- 데스크탑 부제목 (대시보드 버튼으로 변경) -->
         <button onclick="openDashboard()" class="text-xs text-gray-500 hidden lg:flex items-center gap-1.5 whitespace-nowrap cursor-pointer hover:text-indigo-600 transition-colors py-1.5 px-2 rounded-md hover:bg-gray-100 border border-transparent hover:border-gray-200">
-            <i class="fas fa-chart-pie text-indigo-500"></i> 인천서부교육지원청 관내 돌봄 시설 현황
+            <i class="fas fa-chart-pie text-indigo-500" aria-hidden="true"></i> 인천서부교육지원청 관내 돌봄 시설 현황
         </button>
     </header>
 
@@ -108,18 +110,21 @@
             <!-- 상태 필터 영역 -->
             <div class="p-3 border-b bg-gray-50/50 shrink-0">
                 <div class="flex justify-between gap-1 text-[11px] sm:text-xs text-gray-600 bg-white p-1 rounded-lg border shadow-sm items-center">
-                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50 border border-transparent" data-status="green">
-                        <div class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm"></div>여유 <span class="hidden sm:inline">(5명 이상)</span>
+                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md transition-all hover:bg-gray-50 border border-transparent" data-status="green">
+                        <div class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm" aria-hidden="true"></div>
+                        <span class="whitespace-nowrap">여유 <strong id="filterCountGreen" class="text-green-700">(0)</strong></span>
                     </button>
-                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50 border border-transparent" data-status="yellow">
-                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-sm"></div>보통 <span class="hidden sm:inline">(1~4명)</span>
+                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md transition-all hover:bg-gray-50 border border-transparent" data-status="yellow">
+                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-sm" aria-hidden="true"></div>
+                        <span class="whitespace-nowrap">보통 <strong id="filterCountYellow" class="text-yellow-600">(0)</strong></span>
                     </button>
-                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all hover:bg-gray-50 border border-transparent" data-status="red">
-                        <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm"></div>대기
+                    <button class="status-filter-btn flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md transition-all hover:bg-gray-50 border border-transparent" data-status="red">
+                        <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm" aria-hidden="true"></div>
+                        <span class="whitespace-nowrap">대기 <strong id="filterCountRed" class="text-red-700">(0)</strong></span>
                     </button>
                     <!-- 내 위치 버튼 (모바일에서만 표시) -->
                     <button onclick="moveToCurrentLocation()" class="md:hidden flex items-center justify-center w-8 h-8 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors shrink-0 ml-1 shadow-sm border border-blue-100" title="내 위치로 이동">
-                        <i class="fas fa-location-crosshairs"></i>
+                        <i class="fas fa-location-crosshairs" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
@@ -149,9 +154,9 @@
     <div id="noticeModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 hidden">
         <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-md overflow-hidden flex flex-col">
             <div class="bg-blue-600 text-white px-4 py-3 flex justify-between items-center">
-                <h2 class="font-bold text-lg"><i class="fas fa-bullhorn mr-2"></i>공지사항</h2>
-                <button onclick="closeNotice()" class="text-white hover:text-gray-200 focus:outline-none">
-                    <i class="fas fa-times text-xl"></i>
+                <h2 class="font-bold text-lg"><i class="fas fa-bullhorn mr-2" aria-hidden="true"></i>공지사항</h2>
+                <button onclick="closeNotice()" class="text-white hover:text-gray-200 focus:outline-none" aria-label="닫기">
+                    <i class="fas fa-times text-xl" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="p-5 text-gray-700 text-sm leading-relaxed">
@@ -159,9 +164,9 @@
                 <p class="mb-2">본 사이트는 인천서부교육지원청 관내 돌봄 시설의 정원 및 현원 정보를 제공하여 학부모님들의 편리한 시설 이용을 돕고자 제작되었습니다.</p>
                 <div class="bg-gray-50 p-3 rounded mb-3 border">
                     <ul class="space-y-1">
-                        <li><span class="text-green-600 font-bold"><i class="fas fa-circle mr-1 text-xs"></i>여유(초록)</span> : 5명 이상 여유 있음</li>
-                        <li><span class="text-yellow-600 font-bold"><i class="fas fa-circle mr-1 text-xs"></i>보통(노랑)</span> : 1~4명 여유 있음</li>
-                        <li><span class="text-red-500 font-bold"><i class="fas fa-circle mr-1 text-xs"></i>대기(빨강)</span> : 남은 자리 없음</li>
+                        <li><span class="text-green-600 font-bold"><i class="fas fa-circle mr-1 text-xs" aria-hidden="true"></i>여유(초록)</span> : 5명 이상 여유 있음</li>
+                        <li><span class="text-yellow-600 font-bold"><i class="fas fa-circle mr-1 text-xs" aria-hidden="true"></i>보통(노랑)</span> : 1~4명 여유 있음</li>
+                        <li><span class="text-red-500 font-bold"><i class="fas fa-circle mr-1 text-xs" aria-hidden="true"></i>대기(빨강)</span> : 남은 자리 없음</li>
                     </ul>
                 </div>
                 <p class="text-xs text-red-500 font-medium">* 실제 현원과 차이가 있을 수 있으니 정확한 정보는 각 시설에 문의해 주시기 바랍니다.</p>
@@ -182,7 +187,7 @@
     <div id="easterEggModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-80 overflow-hidden flex flex-col relative border-t-8 border-indigo-500 animate-bounce-short">
             <div class="p-8 flex flex-col items-center text-center">
-                <i class="fa-regular fa-calendar-check text-[50px] text-indigo-500 mb-4"></i>
+                <i class="fa-regular fa-calendar-check text-[50px] text-indigo-500 mb-4" aria-hidden="true"></i>
                 <h2 class="font-bold text-xl text-gray-800 mb-2">조금만 더 힘내세요!</h2>
                 <p class="text-sm text-gray-500 mb-1">교사로 돌아가기까지</p>
                 <div class="mb-6">
@@ -202,10 +207,10 @@
             <!-- 헤더 -->
             <div class="bg-indigo-600 text-white px-5 py-4 flex justify-between items-center shrink-0">
                 <h2 class="font-bold text-lg flex items-center gap-2">
-                    <i class="fas fa-chart-line"></i> 서부 관내 돌봄 시설 종합 현황
+                    <i class="fas fa-chart-line" aria-hidden="true"></i> 서부 관내 돌봄 시설 종합 현황
                 </h2>
-                <button onclick="closeDashboard()" class="text-indigo-100 hover:text-white transition-colors focus:outline-none">
-                    <i class="fas fa-times text-xl"></i>
+                <button onclick="closeDashboard()" class="text-indigo-100 hover:text-white transition-colors focus:outline-none" aria-label="대시보드 닫기">
+                    <i class="fas fa-times text-xl" aria-hidden="true"></i>
                 </button>
             </div>
             
@@ -235,13 +240,13 @@
                     <!-- 신호등 상태 현황 (가로 바 차트 형태) -->
                     <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
                         <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                            <i class="fas fa-traffic-light text-gray-400"></i> 신호등 상태 분포
+                            <i class="fas fa-traffic-light text-gray-400" aria-hidden="true"></i> 신호등 상태 분포
                         </h3>
                         <div class="space-y-4">
                             <!-- 여유 -->
                             <div>
                                 <div class="flex justify-between text-xs mb-1">
-                                    <span class="font-medium text-green-700 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div> 여유 (5명이상)</span>
+                                    <span class="font-medium text-green-700 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500" aria-hidden="true"></div> 여유 (5명이상)</span>
                                     <span class="font-bold text-gray-700" id="dashStatusGreen">0개</span>
                                 </div>
                                 <div class="w-full bg-gray-100 rounded-full h-2">
@@ -251,7 +256,7 @@
                             <!-- 보통 -->
                             <div>
                                 <div class="flex justify-between text-xs mb-1">
-                                    <span class="font-medium text-yellow-700 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-yellow-400"></div> 보통 (1~4명)</span>
+                                    <span class="font-medium text-yellow-700 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-yellow-400" aria-hidden="true"></div> 보통 (1~4명)</span>
                                     <span class="font-bold text-gray-700" id="dashStatusYellow">0개</span>
                                 </div>
                                 <div class="w-full bg-gray-100 rounded-full h-2">
@@ -261,7 +266,7 @@
                             <!-- 대기 -->
                             <div>
                                 <div class="flex justify-between text-xs mb-1">
-                                    <span class="font-medium text-red-700 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div> 대기 (0자리)</span>
+                                    <span class="font-medium text-red-700 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500" aria-hidden="true"></div> 대기 (0자리)</span>
                                     <span class="font-bold text-gray-700" id="dashStatusRed">0개</span>
                                 </div>
                                 <div class="w-full bg-gray-100 rounded-full h-2">
@@ -271,7 +276,7 @@
                             <!-- 정보없음 -->
                             <div>
                                 <div class="flex justify-between text-xs mb-1">
-                                    <span class="font-medium text-gray-500 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-gray-400"></div> 정보없음</span>
+                                    <span class="font-medium text-gray-500 flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-gray-400" aria-hidden="true"></div> 정보없음</span>
                                     <span class="font-bold text-gray-700" id="dashStatusGray">0개</span>
                                 </div>
                                 <div class="w-full bg-gray-100 rounded-full h-2">
@@ -284,7 +289,7 @@
                     <!-- 카테고리별 통계 테이블 -->
                     <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
                         <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                            <i class="fas fa-list-ul text-gray-400"></i> 시설 유형별 현황
+                            <i class="fas fa-list-ul text-gray-400" aria-hidden="true"></i> 시설 유형별 현황
                         </h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left">
@@ -320,6 +325,7 @@
         let allFacilities = [];
         let activeOverlay = null;
         let activeStatusFilter = 'all'; 
+        let globalStatusCounts = { green: 0, yellow: 0, red: 0, gray: 0 }; // 💡 추가: 전체 시설 상태별 카운트
 
         // 상수 설정 (매직 스트링 및 딕셔너리 관리)
         const NOTICE_STORAGE_KEY = 'hideNotice_seobu_v2';
@@ -333,12 +339,12 @@
         // 💡 헬퍼 함수: 카테고리에 따른 아이콘 반환 (DRY 원칙 적용)
         function getFacilityIcon(category) {
             const icons = {
-                '초등돌봄교실': '<i class="fas fa-school"></i>',
-                '다함께돌봄센터': '<i class="fas fa-building"></i>',
-                '청소년방과후아카데미': '<i class="fas fa-star"></i>',
-                '지역아동센터': '<i class="fas fa-home"></i>'
+                '초등돌봄교실': '<i class="fas fa-school" aria-hidden="true"></i>',
+                '다함께돌봄센터': '<i class="fas fa-building" aria-hidden="true"></i>',
+                '청소년방과후아카데미': '<i class="fas fa-star" aria-hidden="true"></i>',
+                '지역아동센터': '<i class="fas fa-home" aria-hidden="true"></i>'
             };
-            return icons[category] || '<i class="fas fa-map-marker-alt"></i>';
+            return icons[category] || '<i class="fas fa-map-marker-alt" aria-hidden="true"></i>';
         }
 
         // 공지사항 모달 제어 함수
@@ -479,6 +485,10 @@
         async function processData(data) {
             allFacilities = data;
             
+            // 💡 추가: 초기 데이터 로드 시 전체 시설의 상태별 카운트 계산
+            calculateStatusCounts(allFacilities);
+            updateFilterCounts();
+
             const categories = [...new Set(data.map(item => item['구분']).filter(Boolean))];
             renderCategoryFilters(categories);
 
@@ -496,6 +506,24 @@
             }
 
             renderList(allFacilities);
+        }
+
+        // 💡 추가: 시설 데이터 배열을 받아 상태별 카운트를 계산하는 함수
+        function calculateStatusCounts(data) {
+            globalStatusCounts = { green: 0, yellow: 0, red: 0, gray: 0 };
+            data.forEach(item => {
+                const light = getTrafficLight(item['정원'], item['현원']);
+                if (globalStatusCounts[light.color] !== undefined) {
+                    globalStatusCounts[light.color]++;
+                }
+            });
+        }
+
+        // 💡 추가: 필터 버튼의 숫자를 업데이트하는 함수
+        function updateFilterCounts() {
+            document.getElementById('filterCountGreen').innerText = `(${globalStatusCounts.green})`;
+            document.getElementById('filterCountYellow').innerText = `(${globalStatusCounts.yellow})`;
+            document.getElementById('filterCountRed').innerText = `(${globalStatusCounts.red})`;
         }
 
         // 주소를 좌표로 변환
@@ -539,7 +567,7 @@
                     <div class="font-bold text-lg mb-1 text-blue-700 whitespace-nowrap pr-4">${item['시설명']}</div>
                     <div class="text-xs text-gray-500 mb-2">${item['구분']}</div>
                     <div class="flex items-center gap-2 mb-2 bg-gray-50 p-2 rounded">
-                        <div class="w-3 h-3 rounded-full ${light.bgClass}"></div>
+                        <div class="w-3 h-3 rounded-full ${light.bgClass}" aria-hidden="true"></div>
                         <span class="font-bold">${light.status}</span>
                     </div>
                     <div class="text-sm"><span class="text-gray-500">정원:</span> ${item['정원'] || '-'}명 / <span class="text-gray-500">현원:</span> ${item['현원'] || '-'}명</div>
@@ -559,7 +587,23 @@
                 infowindow.setPosition(position); 
                 infowindow.open(map); 
                 activeOverlay = infowindow;
-                map.panTo(position);
+                
+                // 모바일 환경을 고려하여 인포윈도우가 가리지 않도록 지도 중심을 마커보다 약간 위로 이동
+                // 화면 해상도에 따라 위치 보정 (위도 값을 아주 살짝 높여줌)
+                if (window.innerWidth < 768) {
+                    const proj = map.getProjection();
+                    // Projection API가 로드되었는지 확인
+                    if (proj) {
+                        const point = proj.pointFromCoords(position);
+                        point.y -= 150; // Y축으로 위로 보정 (픽셀 단위)
+                        const offsetPosition = proj.coordsFromPoint(point);
+                        map.panTo(offsetPosition);
+                    } else {
+                        map.panTo(position); // Fallback
+                    }
+                } else {
+                     map.panTo(position);
+                }
             };
 
             item.marker = customOverlay;
@@ -620,7 +664,7 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
                         <div class="flex items-center">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white mr-3 shadow-sm ${light.className}">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white mr-3 shadow-sm ${light.className}" aria-hidden="true">
                                 ${iconHtml}
                             </div>
                             <div>
@@ -639,7 +683,6 @@
 
                 card.onclick = () => {
                     if (item.position && item.marker) {
-                        map.panTo(item.position);
                         item.marker.getContent().click(); 
                         
                         if(window.innerWidth < 768) {
@@ -680,26 +723,33 @@
             const activeCategoryBtn = document.querySelector('.filter-btn.bg-indigo-100');
             const category = activeCategoryBtn ? activeCategoryBtn.dataset.category : 'all';
 
-            const filtered = allFacilities.filter(item => {
+            // 💡 수정: 필터링 조건 분리 (상태 필터를 제외한 나머지 조건으로 먼저 필터링)
+            const baseFiltered = allFacilities.filter(item => {
                 const matchSearch = item['시설명'].toLowerCase().includes(searchTerm) || 
                                     item['주소'].toLowerCase().includes(searchTerm);
                 const matchCategory = category === 'all' || item['구분'] === category;
-                
+                return matchSearch && matchCategory;
+            });
+
+            // 💡 추가: 현재 선택된 검색어 및 카테고리에 해당하는 시설들의 상태 카운트 계산
+            calculateStatusCounts(baseFiltered);
+            updateFilterCounts();
+
+            // 💡 수정: 상태 필터 적용하여 최종 리스트 생성 및 마커 표시
+            const finalFiltered = baseFiltered.filter(item => {
                 const light = getTrafficLight(item['정원'], item['현원']);
                 const matchStatus = activeStatusFilter === 'all' || light.color === activeStatusFilter;
                 
-                const isMatch = matchSearch && matchCategory && matchStatus;
-
                 if (item.marker) {
-                    if (isMatch) item.marker.setMap(map);
+                    if (matchStatus) item.marker.setMap(map);
                     else item.marker.setMap(null);
                 }
 
-                return isMatch;
+                return matchStatus;
             });
 
             if(activeOverlay) activeOverlay.close();
-            renderList(filtered);
+            renderList(finalFiltered);
         }
 
         // 검색창 디바운싱 이벤트 (최적화)
@@ -830,11 +880,11 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50/50 transition-colors";
                 
-                let iconHtml = '<i class="fas fa-map-marker-alt text-gray-400"></i>';
-                if (cat === '초등돌봄교실') iconHtml = '<i class="fas fa-school text-blue-500 w-4 text-center"></i>';
-                else if (cat === '다함께돌봄센터') iconHtml = '<i class="fas fa-building text-indigo-500 w-4 text-center"></i>';
-                else if (cat === '청소년방과후아카데미') iconHtml = '<i class="fas fa-star text-yellow-500 w-4 text-center"></i>';
-                else if (cat === '지역아동센터') iconHtml = '<i class="fas fa-home text-green-500 w-4 text-center"></i>';
+                let iconHtml = '<i class="fas fa-map-marker-alt text-gray-400" aria-hidden="true"></i>';
+                if (cat === '초등돌봄교실') iconHtml = '<i class="fas fa-school text-blue-500 w-4 text-center" aria-hidden="true"></i>';
+                else if (cat === '다함께돌봄센터') iconHtml = '<i class="fas fa-building text-indigo-500 w-4 text-center" aria-hidden="true"></i>';
+                else if (cat === '청소년방과후아카데미') iconHtml = '<i class="fas fa-star text-yellow-500 w-4 text-center" aria-hidden="true"></i>';
+                else if (cat === '지역아동센터') iconHtml = '<i class="fas fa-home text-green-500 w-4 text-center" aria-hidden="true"></i>';
 
                 tr.innerHTML = `
                     <td class="px-3 py-3 font-medium text-gray-700 flex items-center gap-2 whitespace-nowrap">
