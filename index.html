@@ -98,13 +98,13 @@
         
         <!-- 우측 상단 컨트롤 영역 (대시보드 버튼 + 방문자 카운터) -->
         <div class="hidden lg:flex items-center gap-3">
-            <button onclick="openDashboard()" class="text-xs text-gray-500 flex items-center gap-1.5 whitespace-nowrap cursor-pointer hover:text-indigo-600 transition-colors py-1.5 px-2 rounded-md hover:bg-gray-100 border border-transparent hover:border-gray-200">
-                <i class="fas fa-chart-pie text-indigo-500"></i> 인천서부교육지원청 관내 돌봄 시설 현황
+            <button onclick="openDashboard()" class="text-xs text-gray-500 flex items-center gap-1.5 whitespace-nowrap cursor-pointer hover:text-indigo-600 transition-colors h-[24px] px-2.5 rounded-md hover:bg-gray-100 border border-transparent hover:border-gray-200">
+                <i class="fas fa-chart-pie text-indigo-500" aria-hidden="true"></i> 인천서부교육지원청 관내 돌봄 시설 현황
             </button>
             
-            <!-- hits.sh 방문자 카운터 (URL 파라미터는 임의의 식별자입니다) -->
-            <a href="https://hits.seeyoufarm.com" target="_blank" rel="noopener noreferrer">
-                <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fseobudolbom.com&count_bg=%23818cf8&title_bg=%234f46e5&icon=&icon_color=%23E7E7E7&title=%EB%B0%A9%EB%AC%B8%EC%9E%90&edge_flat=true" alt="방문자 수 카운터"/>
+            <!-- hits.sh 방문자 카운터 (가독성을 위해 배경을 흰색으로 지정하여 글자를 어둡게 처리) -->
+            <a href="https://hits.sh/seobudolbom.com/" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center border border-gray-200 rounded-md overflow-hidden hover:border-gray-300 transition-colors h-[24px]" title="방문자 수">
+                <img src="https://hits.sh/seobudolbom.com.svg?label=👥&labelColor=ffffff&color=ffffff" alt="방문자 수 카운터" class="h-full object-cover"/>
             </a>
         </div>
     </header>
