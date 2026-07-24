@@ -87,12 +87,26 @@
                 <i class="fas fa-search absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
             </div>
             
-            <!-- 카테고리 필터 -->
-            <div class="flex flex-wrap gap-1.5 justify-center" id="categoryFilters">
-                <button class="filter-btn active px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-medium transition-colors" data-category="all">
-                    <span>전체 <span id="countAll" class="font-normal"></span></span>
-                </button>
-                <!-- 카테고리 버튼들은 JS로 자동 생성됨 -->
+            <!-- 카테고리 필터 (데스크탑: 버튼, 모바일: 드롭다운) -->
+            <div class="w-full md:w-auto">
+                <!-- 데스크탑용 가로 버튼 -->
+                <div class="hidden md:flex flex-wrap gap-1.5 justify-center" id="categoryFiltersDesktop">
+                    <button class="filter-btn active px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-medium transition-colors flex items-center justify-center" data-category="all">
+                        <span>전체 <span class="font-normal" id="countAllDesktop"></span></span>
+                    </button>
+                    <!-- 카테고리 버튼들은 JS로 자동 생성됨 -->
+                </div>
+                
+                <!-- 모바일용 드롭다운 메뉴 -->
+                <div class="md:hidden relative w-full">
+                    <select id="categoryFiltersMobile" class="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-1.5 px-4 pr-8 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium transition-shadow cursor-pointer">
+                        <option value="all" id="optionAllMobile">전체</option>
+                        <!-- 옵션들은 JS로 자동 생성됨 -->
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                        <i class="fas fa-chevron-down text-xs" aria-hidden="true"></i>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -332,6 +346,7 @@
         let allFacilities = [];
         let activeOverlay = null;
         let activeStatusFilter = 'all'; 
+        let activeCategoryFilter = 'all'; // 💡 추가: 현재 활성화된 카테고리 상태 저장 변수
         let globalStatusCounts = { green: 0, yellow: 0, red: 0, gray: 0 }; // 💡 추가: 전체 시설 상태별 카운트
 
         // 상수 설정 (매직 스트링 및 딕셔너리 관리)
@@ -620,34 +635,43 @@
 
         // 카테고리 필터 버튼 생성
         function renderCategoryFilters(categories) {
-            const filterContainer = document.getElementById('categoryFilters');
+            const filterContainerDesktop = document.getElementById('categoryFiltersDesktop');
+            const filterContainerMobile = document.getElementById('categoryFiltersMobile');
             
-            // '전체' 카운트 업데이트
-            const countAll = document.getElementById('countAll');
-            if (countAll) countAll.innerText = `(${allFacilities.length})`;
+            // '전체' 카운트 업데이트 (데스크탑 및 모바일)
+            const countAllDesktop = document.getElementById('countAllDesktop');
+            if (countAllDesktop) countAllDesktop.innerText = `(${allFacilities.length})`;
+            
+            const optionAllMobile = document.getElementById('optionAllMobile');
+            if (optionAllMobile) optionAllMobile.innerText = `전체 (${allFacilities.length})`;
 
             categories.forEach(cat => {
+                const catCount = allFacilities.filter(item => item['구분'] === cat).length;
+
+                // 1. 데스크탑용 버튼 생성
                 const btn = document.createElement('button');
                 btn.className = 'filter-btn px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 text-xs font-medium transition-colors flex items-center justify-center';
                 btn.dataset.category = cat;
+                btn.innerHTML = `<span>${cat} <span class="font-normal">(${catCount})</span></span>`;
+                filterContainerDesktop.appendChild(btn);
 
-                // 💡 개선: 객체 매핑을 통한 축약어 변환
-                const shortName = CATEGORY_SHORT_NAMES[cat] || cat;
-                
-                // 💡 추가: 해당 카테고리에 속하는 시설 개수 계산
-                const catCount = allFacilities.filter(item => item['구분'] === cat).length;
-
-                btn.innerHTML = `
-                    <span class="md:hidden">${shortName} <span class="font-normal">(${catCount})</span></span>
-                    <span class="hidden md:inline">${cat} <span class="font-normal">(${catCount})</span></span>
-                `;
-                filterContainer.appendChild(btn);
+                // 2. 모바일용 드롭다운 옵션 생성
+                const option = document.createElement('option');
+                option.value = cat;
+                option.innerText = `${cat} (${catCount})`;
+                filterContainerMobile.appendChild(option);
             });
 
+            // 데스크탑 버튼 클릭 이벤트
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const targetBtn = e.currentTarget; 
+                    const selectedCategory = targetBtn.dataset.category;
 
+                    // 상태 업데이트
+                    activeCategoryFilter = selectedCategory;
+
+                    // 데스크탑 UI 스타일 변경
                     document.querySelectorAll('.filter-btn').forEach(b => {
                         b.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
                         b.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
@@ -655,8 +679,32 @@
                     targetBtn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
                     targetBtn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
 
+                    // 모바일 드롭다운 동기화
+                    filterContainerMobile.value = selectedCategory;
+
                     filterAndRender();
                 });
+            });
+
+            // 모바일 드롭다운 변경 이벤트
+            filterContainerMobile.addEventListener('change', (e) => {
+                const selectedCategory = e.target.value;
+                
+                // 상태 업데이트
+                activeCategoryFilter = selectedCategory;
+
+                // 데스크탑 UI 버튼 스타일 동기화
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    if (b.dataset.category === selectedCategory) {
+                        b.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
+                        b.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
+                    } else {
+                        b.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
+                        b.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
+                    }
+                });
+
+                filterAndRender();
             });
         }
 
@@ -735,8 +783,7 @@
             }
 
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const activeCategoryBtn = document.querySelector('.filter-btn.bg-indigo-100');
-            const category = activeCategoryBtn ? activeCategoryBtn.dataset.category : 'all';
+            const category = activeCategoryFilter; // 💡 수정: 모바일/데스크탑이 공유하는 전역 변수 활용
 
             // 💡 수정: 필터링 조건 분리 (상태 필터를 제외한 나머지 조건으로 먼저 필터링)
             const baseFiltered = allFacilities.filter(item => {
